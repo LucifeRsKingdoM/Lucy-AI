@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucy AI - Language Learning Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style1.css') }}">
+    <link rel="stylesheet" href="/static/style1.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <img src="/static/media/mini-logo.png" alt="logo">
+                <span class="brand-text">Lucy AI</span>
+            </div>
+            
+            <div class="nav-center">
+                <div class="language-selector">
+                    <i class="fas fa-globe"></i>
+                    <select id="languageSelect">
+                        <option value="en-US">English</option>
+                        <option value="hi-IN" disabled>Hindi (Coming Soon)</option>
+                        <option value="kn-IN" disabled>Kannada (Coming Soon)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="nav-actions">
+                <button class="nav-btn" id="donateBtn" title="Donate">
+                    <i class="fas fa-heart"></i> Donate
+                </button>
+                <button class="nav-btn" id="notificationBtn" title="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notificationCount">0</span>
+                </button>
+                <div class="user-profile" id="userProfileBtn">
+                    <img src="https://ui-avatars.com/api/?name={{ username }}&background=6366f1&color=fff" alt="Profile" class="user-avatar">
+                    <span class="user-name">{{ username }}</span>
+                </div>
+                <button class="logout-btn" id="logoutBtn" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard Container -->
+    <div class="dashboard-container">
+        <!-- Left Sidebar -->
+        <aside class="left-sidebar">
+            <!-- Navigation Menu -->
+            <div class="nav-menu">
+                <a href="#" class="menu-item active" data-tab="chat">
+                    <i class="fas fa-comments"></i>
+                    <span>Chat</span>
+                </a>
+                <a href="#" class="menu-item" data-tab="lessons">
+                    <i class="fas fa-book"></i>
+                    <span>Lessons</span>
+                </a>
+                <a href="#" class="menu-item" data-tab="progress">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Progress</span>
+                </a>
+                <a href="#" class="menu-item" data-tab="vocabulary">
+                    <i class="fas fa-spell-check"></i>
+                    <span>Vocabulary</span>
+                </a>
+                <a href="#" class="menu-item" data-tab="achievements">
+                    <i class="fas fa-trophy"></i>
+                    <span>Achievements</span>
+                </a>
+            </div>
+
+            <!-- Voice Mode Toggle -->
+            <div class="voice-mode-section">
+                <button class="voice-mode-btn" id="switchModeBtn">
+                    <i class="fas fa-microphone"></i>
+                    <span>Voice Mode</span>
+                </button>
+            </div>
+
+        <div class="sidebar-analytics hidden">
+            <!-- Live Analytics in Sidebar -->
+            <div class="sidebar-analytics">
+                <h3>Live Stats</h3>
+                <div class="analytics-grid">
+                    <div class="analytic-card">
+                        <div class="analytic-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="analytic-info">
+                            <span class="analytic-label">Session</span>
+                            <span class="analytic-value" id="sessionDuration">00:00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="analytic-card">
+                        <div class="analytic-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="analytic-info">
+                            <span class="analytic-label">Messages</span>
+                            <span class="analytic-value" id="messagesCount">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="analytic-card">
+                        <div class="analytic-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <div class="analytic-info">
+                            <span class="analytic-label">Accuracy</span>
+                            <span class="analytic-value" id="accuracyScore">0%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="analytic-card">
+                        <div class="analytic-icon">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div class="analytic-info">
+                            <span class="analytic-label">Streak</span>
+                            <span class="analytic-value" id="streakDays">0 days</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+            <!-- Animated Contribute button -->
+            <div class="contribute-wrapper">
+                <button class="contribute-btn" id="contributeBtn">
+                    <i class="fas fa-heart"></i>
+                    <span>Contribute</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Welcome Section - Smaller -->
+            <div class="welcome-section">
+                <h1 class="welcome-title">
+                    Welcome back, <span class="highlight">{{ username }}</span>! 👋
+                </h1>
+                <p class="welcome-subtitle">Ready to continue your learning journey?</p>
+            </div>
+
+            <!-- Chat Tab - Default View -->
+            <div class="content-section active" id="chatContent">
+                <!-- Chat Interface -->
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <div class="chat-avatar">
+                            <div class="avatar-ring">
+                                <img src="https://ui-avatars.com/api/?name=Lucy&background=ec4899&color=fff" alt="Lucy">
+                            </div>
+                            <span class="online-indicator"></span>
+                        </div>
+                        <div class="chat-info">
+                            <h3>Lucy AI</h3>
+                            <p id="chatStatus">Your AI Language Companion</p>
+                        </div>
+                        <div class="chat-actions">
+                            <button class="chat-action-btn" id="clearChatBtn" title="Clear Chat">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button class="chat-action-btn" id="exportChatBtn" title="Export Chat">
+                                <i class="fas fa-download"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="chat-messages" id="chatBox">
+                        <!-- Messages will be added here -->
+                    </div>
+
+                    <div class="chat-input-container">
+                        <div class="chat-suggestions" id="chatSuggestions">
+                            <button class="suggestion-chip" data-text="How do I improve my pronunciation?">Pronunciation?</button>
+                            <button class="suggestion-chip" data-text="Let's practice conversation">Practice</button>
+                            <button class="suggestion-chip" data-text="Teach me new words">New Words</button>
+                        </div>
+                        <div class="chat-input">
+                            <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
+                            <button class="send-btn" id="sendMessageBtn" title="Send">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h6>The application is not fully completed its still under development</h6>
+
+            <!-- Lessons Tab -->
+            <div class="content-section" id="lessonsContent" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-book"></i> Lessons</h2>
+                    <p>Structured learning paths to improve your skills</p>
+                </div>
+                <div class="lessons-grid">
+                    <div class="lesson-card">
+                        <div class="lesson-icon grammar">
+                            <i class="fas fa-spell-check"></i>
+                        </div>
+                        <div class="lesson-content">
+                            <h3>Grammar Basics</h3>
+                            <p>Learn fundamental grammar rules</p>
+                            <div class="lesson-progress">
+                                <div class="progress-bar" style="width: 30%"></div>
+                                <span>30% Complete</span>
+                            </div>
+                        </div>
+                        <button class="lesson-btn">Continue</button>
+                    </div>
+                    
+                    <div class="lesson-card">
+                        <div class="lesson-icon vocabulary">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <div class="lesson-content">
+                            <h3>Vocabulary Building</h3>
+                            <p>Expand your word knowledge</p>
+                            <div class="lesson-progress">
+                                <div class="progress-bar" style="width: 45%"></div>
+                                <span>45% Complete</span>
+                            </div>
+                        </div>
+                        <button class="lesson-btn">Continue</button>
+                    </div>
+                    
+                    <div class="lesson-card">
+                        <div class="lesson-icon speaking">
+                            <i class="fas fa-microphone"></i>
+                        </div>
+                        <div class="lesson-content">
+                            <h3>Speaking Practice</h3>
+                            <p>Improve pronunciation and fluency</p>
+                            <div class="lesson-progress">
+                                <div class="progress-bar" style="width: 20%"></div>
+                                <span>20% Complete</span>
+                            </div>
+                        </div>
+                        <button class="lesson-btn">Start</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Tab -->
+            <div class="content-section" id="progressContent" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-line"></i> Progress</h2>
+                    <p>Track your learning journey</p>
+                </div>
+                <div class="progress-grid">
+                    <div class="progress-card">
+                        <h3>Weekly Goal</h3>
+                        <div class="circular-progress">
+                            <div class="progress-circle" data-progress="75">
+                                <span>75%</span>
+                            </div>
+                        </div>
+                        <p>210 min / 280 min</p>
+                    </div>
+                    
+                    <div class="progress-card">
+                        <h3>Accuracy Trend</h3>
+                        <div class="mini-chart">
+                            <i class="fas fa-chart-area"></i>
+                            <span class="trend-up">+12%</span>
+                        </div>
+                        <p>Improving steadily!</p>
+                    </div>
+                    
+                    <div class="progress-card">
+                        <h3>Words Learned</h3>
+                        <div class="number-stat">
+                            <span class="big-number">247</span>
+                            <span class="stat-change">+15 this week</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vocabulary Tab -->
+            <div class="content-section" id="vocabularyContent" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-spell-check"></i> Vocabulary</h2>
+                    <p>Words you've learned and practiced</p>
+                </div>
+                <div class="vocabulary-container">
+                    <div class="vocab-stats">
+                        <div class="vocab-stat">
+                            <span class="stat-number">247</span>
+                            <span class="stat-label">Total Words</span>
+                        </div>
+                        <div class="vocab-stat">
+                            <span class="stat-number">15</span>
+                            <span class="stat-label">This Week</span>
+                        </div>
+                        <div class="vocab-stat">
+                            <span class="stat-number">89%</span>
+                            <span class="stat-label">Mastery</span>
+                        </div>
+                    </div>
+                    
+                    <div class="vocab-list" id="vocabList">
+                        <div class="vocab-item">
+                            <div class="vocab-word">
+                                <h4>Eloquent</h4>
+                                <p>Fluent or persuasive in speaking</p>
+                            </div>
+                            <div class="vocab-level mastered">Mastered</div>
+                        </div>
+                        
+                        <div class="vocab-item">
+                            <div class="vocab-word">
+                                <h4>Perseverance</h4>
+                                <p>Persistence in doing something</p>
+                            </div>
+                            <div class="vocab-level learning">Learning</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Achievements Tab -->
+            <div class="content-section" id="achievementsContent" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-trophy"></i> Achievements</h2>
+                    <p>Your learning milestones and badges</p>
+                </div>
+                <div class="achievements-grid">
+                    <div class="achievement-card unlocked">
+                        <div class="achievement-icon">
+                            <i class="fas fa-baby"></i>
+                        </div>
+                        <h3>First Steps</h3>
+                        <p>Sent your first message</p>
+                        <div class="achievement-date">Unlocked today</div>
+                    </div>
+                    
+                    <div class="achievement-card unlocked">
+                        <div class="achievement-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h3>Chatterbox</h3>
+                        <p>Had 10 conversations</p>
+                        <div class="achievement-date">Unlocked yesterday</div>
+                    </div>
+                    
+                    <div class="achievement-card locked">
+                        <div class="achievement-icon">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <h3>Streak Master</h3>
+                        <p>Maintain 7-day streak</p>
+                        <div class="achievement-progress">4/7 days</div>
+                    </div>
+                    
+                    <div class="achievement-card locked">
+                        <div class="achievement-icon">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <h3>Scholar</h3>
+                        <p>Learn 100 new words</p>
+                        <div class="achievement-progress">47/100 words</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+            <!-- Right Sidebar -->
+        <aside class="right-sidebar">
+            <!-- Big Stat Cards -->
+            <div class="right-stats">
+                <h3>Quick Stats</h3>
+
+                <div class="stat-card big">
+                    <i class="fas fa-stopwatch"></i>
+                    <span class="stat-label">Session</span>
+                    <span class="stat-value" id="rsSession">00:00</span>
+                </div>
+
+                <div class="stat-card big">
+                    <i class="fas fa-comments"></i>
+                    <span class="stat-label">Messages</span>
+                    <span class="stat-value" id="rsMessages">0</span>
+                </div>
+
+                <div class="stat-card big">
+                    <i class="fas fa-bullseye"></i>
+                    <span class="stat-label">Accuracy</span>
+                    <span class="stat-value" id="rsAccuracy">0 %</span>
+                </div>
+
+                <div class="stat-card big">
+                    <i class="fas fa-fire"></i>
+                    <span class="stat-label">Streak</span>
+                    <span class="stat-value" id="rsStreak">0 days</span>
+                </div>
+            </div>
+
+            
+        </aside>
+    </div>
+
+    
+
+    <!-- Voice Mode Indicator -->
+    <div class="voice-indicator" id="voiceIndicator">
+        <div class="voice-waves">
+            <div class="wave"></div>
+            <div class="wave"></div>
+            <div class="wave"></div>
+        </div>
+        <span class="voice-text" id="voiceText">Listening...</span>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="fab-container">
+        <button class="fab" id="fabBtn">
+            <i class="fas fa-microphone"></i>
+        </button>
+    </div>
+
+    <!-- Donation Modal -->
+    <div class="modal-overlay" id="donationModal">
+        <div class="donation-container">
+            <div class="donation-header">
+                <button class="close-btn" id="closeDonationBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+                <h2>💝 Support Lucy AI</h2>
+                <p>Help us keep AI education free for everyone</p>
+            </div>
+            
+            <div class="donation-content">
+                <div class="donation-message">
+                    <div class="message-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h3>Your Support Matters</h3>
+                    <p>Lucy AI is 100% free and open source. Your donation helps us improve the platform, add new features, and keep everything accessible to learners worldwide.</p>
+                </div>
+                
+                <div class="payment-methods">
+                    <h4>Payment Methods</h4>
+                    <div class="payment-grid">
+                        <button class="payment-btn" data-method="phonepe">
+                            <i class="fas fa-mobile-alt"></i>
+                            <span>PhonePe</span>
+                        </button>
+                        <button class="payment-btn" data-method="googlepay">
+                            <i class="fab fa-google-pay"></i>
+                            <span>Google Pay</span>
+                        </button>
+                        <button class="payment-btn" data-method="paytm">
+                            <i class="fas fa-wallet"></i>
+                            <span>Paytm</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="payment-details" id="paymentDetails" style="display: none;">
+                    <div class="qr-section">
+                        <div class="qr-code" id="qrCode">
+                            <i class="fas fa-qrcode"></i>
+                            <p>QR Code will appear here</p>
+                        </div>
+                        <div class="payment-info">
+                            <h4 id="paymentMethodName">PhonePe</h4>
+                            <div class="upi-details">
+                                <span class="label">UPI ID:</span>
+                                <span class="upi-id" id="upiId">loading...</span>
+                                <button class="copy-btn" id="copyUpiBtn">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="phone-details">
+                                <span class="label">Phone:</span>
+                                <span class="phone-number" id="phoneNumber">loading...</span>
+                                <button class="copy-btn" id="copyPhoneBtn">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                                <div class="other-support">
+                    <h4>Other Ways to Support</h4>
+                    <div class="support-options">
+                        <a href="#" class="support-btn">
+                            <i class="fab fa-github"></i>
+                            <span>Star on GitHub</span>
+                        </a>
+                        <a href="#" class="support-btn">
+                            <i class="fas fa-code"></i>
+                            <span>Contribute Code</span>
+                        </a>
+                        <a href="#" class="support-btn">
+                            <i class="fas fa-share"></i>
+                            <span>Share with Friends</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="profile-container">
+            <div class="profile-header">
+                <button class="close-btn" id="closeProfileBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+                <h2>User Profile</h2>
+            </div>
+            
+            <div class="profile-content">
+                <div class="profile-avatar-section">
+                    <div class="profile-avatar-large">
+                        <img src="https://ui-avatars.com/api/?name={{ username }}&background=6366f1&color=fff&size=120" alt="Profile" id="profileImage">
+                    </div>
+                    <button class="change-avatar-btn">
+                        <i class="fas fa-camera"></i>
+                        Change Photo
+                    </button>
+                </div>
+                
+                <div class="profile-info">
+                    <div class="info-group">
+                        <label>Full Name</label>
+                        <div class="info-value" id="profileName">{{ username }}</div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Email</label>
+                        <div class="info-value" id="profileEmail">user@example.com</div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Member Since</label>
+                        <div class="info-value" id="memberSince">Today</div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Learning Streak</label>
+                        <div class="info-value" id="profileStreak">
+                            <i class="fas fa-fire"></i>
+                            <span>0 days</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-stats">
+                    <h3>Your Learning Stats</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-number" id="totalMessages">0</span>
+                                <span class="stat-label">Messages</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-number" id="totalTime">0h</span>
+                                <span class="stat-label">Practice Time</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-number" id="totalAchievements">0</span>
+                                <span class="stat-label">Achievements</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-number" id="currentLevel">Beginner</span>
+                                <span class="stat-label">Level</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-actions">
+                    <button class="btn btn-outline">
+                        <i class="fas fa-edit"></i>
+                        Edit Profile
+                    </button>
+                    <button class="btn btn-outline">
+                        <i class="fas fa-download"></i>
+                        Export Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Panel -->
+    <div class="notification-panel" id="notificationPanel">
+        <div class="notification-header">
+            <h3>Notifications</h3>
+            <button class="mark-all-read" id="markAllReadBtn">Mark all read</button>
+        </div>
+        <div class="notification-list" id="notificationList">
+            <div class="notification-item unread">
+                <div class="notification-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="notification-content">
+                    <h4>Achievement Unlocked!</h4>
+                    <p>You've sent your first message</p>
+                    <span class="notification-time">Just now</span>
+                </div>
+            </div>
+            
+            <div class="notification-item">
+                <div class="notification-icon">
+                    <i class="fas fa-fire"></i>
+                </div>
+                <div class="notification-content">
+                    <h4>Streak Started!</h4>
+                    <p>Keep practicing daily to maintain your streak</p>
+                    <span class="notification-time">1 hour ago</span>
+                </div>
+            </div>
+            
+            <div class="empty-notifications" style="display: none;">
+                <i class="fas fa-bell"></i>
+                <p>No new notifications</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievement Toast -->
+    <div class="achievement-toast" id="achievementToast">
+        <div class="achievement-icon">
+            <i class="fas fa-trophy"></i>
+        </div>
+        <div class="achievement-content">
+            <h4 id="achievementTitle">Achievement Unlocked!</h4>
+            <p id="achievementDescription">You've completed your daily goal</p>
+        </div>
+        <button class="toast-close">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Connecting to Lucy AI...</p>
+        </div>
+    </div>
+
+    <!-- Welcome Overlay -->
+    <div class="welcome-overlay" id="welcomeOverlay">
+        <div class="welcome-modal">
+            <div class="welcome-animation">
+                <div class="welcome-circle"></div>
+                <div class="welcome-circle"></div>
+                <div class="welcome-circle"></div>
+            </div>
+            <h2>Welcome to Lucy AI! 🎉</h2>
+            <p>Ready to start your language learning journey?</p>
+            <button class="start-btn" id="startBtn">
+                <span>Let's Begin</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation (for very small screens) -->
+    <div class="mobile-bottom-nav">
+        <button class="mobile-nav-item active" data-tab="chat">
+            <i class="fas fa-comments"></i>
+            <span>Chat</span>
+        </button>
+        <button class="mobile-nav-item" data-tab="lessons">
+            <i class="fas fa-book"></i>
+            <span>Lessons</span>
+        </button>
+        <button class="mobile-nav-item" data-tab="progress">
+            <i class="fas fa-chart-line"></i>
+            <span>Progress</span>
+        </button>
+        <button class="mobile-nav-item" data-tab="vocabulary">
+            <i class="fas fa-spell-check"></i>
+            <span>Vocab</span>
+        </button>
+        <button class="mobile-nav-item" data-tab="achievements">
+            <i class="fas fa-trophy"></i>
+            <span>Awards</span>
+        </button>
+    </div>
+
+    <!-- Success Toast -->
+    <div class="toast success-toast" id="successToast">
+        <div class="toast-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="toast-content">
+            <h4>Success!</h4>
+            <p id="successMessage">Operation completed successfully</p>
+        </div>
+        <button class="toast-close">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- Error Toast -->
+    <div class="toast error-toast" id="errorToast">
+        <div class="toast-icon">
+            <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <div class="toast-content">
+            <h4>Error!</h4>
+            <p id="errorMessage">Something went wrong</p>
+        </div>
+        <button class="toast-close">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- Include JavaScript -->
+    <script src="{{ url_for('static', filename='script1.js') }}"></script>
+</body>
+</html>
