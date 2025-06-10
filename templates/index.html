@@ -972,6 +972,95 @@ html {
   }
 }
 
+/*=============================================
+  MOBILE TWEAKS — insert at very end
+=============================================*/
+@media (max-width: 768px) {
+  /* 1) Donation banner smaller on phones */
+  .donation-marquee {
+    padding: 5px 0;
+    font-size: 0.75rem;
+  }
+
+  /* 2) Compress navbar padding & make it sticky */
+  .navbar {
+    position: sticky;
+    top: 0;
+    padding: 0.75rem 0;
+  }
+
+  /* 3) Hide nav-buttons by default */
+  .nav-buttons {
+    display: none;
+  }
+
+  /* 4) When the burger opens nav-menu, show buttons under links */
+  /* (.nav-menu is your UL, nav-buttons is the sibling div) */
+  .nav-menu + .nav-buttons {
+    display: none;
+  }
+  .nav-menu.active + .nav-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 1rem 0;
+  }
+
+  /* 5) Make the collapsed menu fill the screen below the navbar */
+  .nav-menu {
+    position: fixed;
+    top: 60px;               /* adjust if your navbar is taller/shorter */
+    left: -100%;
+    width: 100%;
+    height: calc(100vh - 60px);
+    background: var(--gray-900);
+    flex-direction: column;
+    padding: 1.5rem;
+    gap: 1rem;
+    overflow-y: auto;
+    transition: left 0.3s ease;
+  }
+  .nav-menu.active {
+    left: 0;
+  }
+
+  /* 6) Full-width, thumb-friendly buttons */
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* 7) Prevent hero title overflow from caret rule */
+  .hero-title {
+    border-right: none !important;
+  }
+
+  /* 8) Add a little breathing room above hero */
+  .hero {
+    padding-top: 1rem;
+  }
+}
+
+/* Tablet breakpoint: stack hero/about sooner */
+@media (max-width: 1024px) {
+  .hero-container,
+  .about-container {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    text-align: center;
+  }
+  .hero-stats {
+    justify-content: center;
+  }
+}
+
+/* Ultra-small phones: hide the banner completely if you like */
+@media (max-width: 360px) {
+  .donation-marquee {
+    display: none;
+  }
+}
+
     </style>
 </head>
 <body>
