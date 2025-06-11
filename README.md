@@ -68,6 +68,22 @@
   <img src="https://raw.githubusercontent.com/your-user/lucy-ai/main/assets/demo.png" alt="Lucy AI screenshot" width="80%">
 </p>
 
+![Screenshot 2025-06-12 011919](https://github.com/user-attachments/assets/26cb6636-1912-4281-bb13-6e5a3fa42fce)
+
+![Screenshot 2025-06-12 012156](https://github.com/user-attachments/assets/7d30a14c-a8f4-4d26-adf6-8b669e6137bb)
+
+![Screenshot 2025-06-12 012228](https://github.com/user-attachments/assets/bb8c4e6f-1955-4ab6-a86e-d475b2fa5d10)
+
+![Screenshot 2025-06-12 012249](https://github.com/user-attachments/assets/52c86520-8cb2-4a1a-acf6-748937b83af7)
+
+![Screenshot 2025-06-12 012336](https://github.com/user-attachments/assets/832374b6-65ff-424c-a498-01a8c357a124)
+
+![Screenshot 2025-06-12 012519](https://github.com/user-attachments/assets/fdd1d3e7-4754-4da4-9443-2a468d72ef78)
+
+![Screenshot 2025-06-12 012610](https://github.com/user-attachments/assets/5869ae4d-1b98-494b-8704-e65a4f2242fd)
+
+![Screenshot 2025-06-12 012700](https://github.com/user-attachments/assets/3e9eaa8e-d6e6-42f2-8720-038dc92b9a2c)
+
 ---
 
 ## 🧑‍💻 Run Locally
