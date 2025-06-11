@@ -122,17 +122,20 @@ We welcome contributions! Whether it's a bug fix, feature idea, or doc improveme
 
 ---
 
-## 💜 Support This Project
+## 💜 Support This Project By Donating or contributing.
 
 Lucy is free & ad-free, but API and server costs add up.  
 You can support the project via:
 
-| Method      | ID/Link                     |
-|-------------|-----------------------------|
-| PhonePe     | `yogiguli@ybl`              |
-| Google Pay  | `yogesh490807@okaxis`       |
-| Paytm       | `9008587582@ptaxis`         |
-| GitHub      | ⭐ Star the repo             |
+| Method      | UPI-ID/Mail-ID                  |
+|-------------|---------------------------------|
+| PhonePe     | `yogiguli@ybl`                  |
+| Google Pay  | `yogesh490807@okaxis`           |
+| Paytm       | `9008587582@ptaxis`             |
+| AirTM       | `personalmail.lucifer@gmail.com`|
+| GitHub      | ⭐ Star the repo                |
+
+![GooglePay_QR](https://github.com/user-attachments/assets/0a280e21-ae69-44e8-87de-0983f00b4b50)
 
 Even ₹5 helps. Thank you so much! ☕💜
 
@@ -146,5 +149,5 @@ Feel free to use and modify with attribution.
 ---
 
 <p align="center">
-  Built with ❤️ and caffeine in Bangalore
+  Built with ❤️ By LucifeR.
 </p>
