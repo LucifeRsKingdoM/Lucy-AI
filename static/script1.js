@@ -765,19 +765,19 @@ function initializeDonationSystem() {
     
     const donationData = {
         phonepe: {
-            name: 'PhonePe',
+            name: 'PhonePe - Yogesh V',
             upiId: 'yogiguli@ybl',
             phone: '+91-9008587582',
             qrCode: '/static/media/PhonePe_QR.png'
         },
         googlepay: {
-            name: 'Google Pay',
+            name: 'Google Pay - Yogesh V',
             upiId: 'yogesh490807@okaxis',
             phone: '+91-9008587582',
             qrCode: '/static/media/GooglePay_QR.png'
         },
         paytm: {
-            name: 'Paytm',
+            name: 'Paytm - Yogesh V',
             upiId: '9008587582@ptaxis',
             phone: '+91-9008587582',
             qrCode: '/static/media/Paytm_QR.png'
