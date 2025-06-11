@@ -184,6 +184,12 @@
                             <button class="suggestion-chip" data-text="How do I improve my pronunciation?">Pronunciation?</button>
                             <button class="suggestion-chip" data-text="Let's practice conversation">Practice</button>
                             <button class="suggestion-chip" data-text="Teach me new words">New Words</button>
+                            <!-- Floating Action Button -->
+                            <div class="fab-container">
+                                <button class="fab" id="fabBtn">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="chat-input">
                             <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
@@ -421,12 +427,7 @@
         <span class="voice-text" id="voiceText">Listening...</span>
     </div>
 
-    <!-- Floating Action Button -->
-    <div class="fab-container">
-        <button class="fab" id="fabBtn">
-            <i class="fas fa-microphone"></i>
-        </button>
-    </div>
+    
 
     <!-- Donation Modal -->
     <div class="modal-overlay" id="donationModal">
