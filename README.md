@@ -1,154 +1,98 @@
-Here’s a properly formatted and polished `README.md` you can copy and paste directly into your VS Code project:
+Lucy AI 🤖💬
+“Practice makes fluent.” – Lucy
 
-````markdown
-<!-- ─────────────────────────────────────────────────────────────── -->
-<!--  LUCY AI – README                                               -->
-<!--  “Learn any language by chatting with an AI friend.”           -->
-<!--  © 2024 Yogesh (MIT-licensed, still in active development)     -->
-<!-- ─────────────────────────────────────────────────────────────── -->
+What’s Lucy AI?
+Lucy AI is a 100% free and open-source web application that helps you learn any language—especially English—by chatting with an AI friend.
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/your-user/lucy-ai/main/assets/lucy_logo.svg" width="120" alt="Lucy AI logo">
-</p>
+You can speak or type your messages. Lucy listens, replies in short friendly texts, corrects your grammar and pronunciation, and tracks your streak and progress.
 
-<h1 align="center">Lucy AI 🤖💬</h1>
+⚠️ Still under development – features and UI are improving fast.
+Your feedback and pull requests are very welcome!
 
-<p align="center"><i>“Practice makes fluent.” – Lucy</i></p>
+Tech Stack
+Front-end: HTML, CSS, Font Awesome, JavaScript
 
-<p align="center">
-  <a href="https://github.com/your-user/lucy-ai">
-    <img src="https://img.shields.io/github/stars/your-user/lucy-ai?style=social" alt="GitHub stars">
-  </a>
-  <a href="https://github.com/your-user/lucy-ai/fork">
-    <img src="https://img.shields.io/github/forks/your-user/lucy-ai?style=social" alt="GitHub forks">
-  </a>
-  <img src="https://img.shields.io/badge/status-🚧%20IN%20PROGRESS-orange" alt="Project status">
-  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs welcome">
-</p>
+Voice Support: Web Speech API (Speech-to-Text and Text-to-Speech)
 
----
+Back-end: Python (Flask framework)
 
-## 🚀 What’s Lucy AI?
+Database: SQLite (local, lightweight)
 
-**Lucy AI** is a **100% free & open-source** web application that helps you master any language simply by chatting with an AI friend.  
-Lucy listens to your speech (or text), replies in short friendly messages, corrects grammar & pronunciation, and tracks your streak & progress.
+AI Model: Google Gemini 2.0 (via REST API)
 
-> ⚠️ **Still under construction** – features & UI are evolving fast.  
-> Your feedback (and pull-requests!) are very welcome.
+Auth & Sessions: Flask secure cookies
 
----
+Key Features
+Feature	Status
+User Registration/Login	✅ Done
+Real-time Chat Interface	✅ Done
+Voice Mode (Hands-Free)	✅ Done
+Live Stats & Streaks	✅ Done
+Lessons & Vocabulary	🚧 Coming Soon
+Achievements & Badges	🚧 Coming Soon
+Multi-language Support	🚧 Coming Soon
 
-## 🧑‍💻 Tech Stack
+How to Run Locally
+Clone the repo from GitHub
 
-| Layer           | Tech                                                |
-|----------------|-----------------------------------------------------|
-| Front-end      | HTML + CSS • Font Awesome • Vanilla JS             |
-| Voice          | Web Speech API (speech-to-text & TTS)              |
-| Back-end       | Python / Flask                                      |
-| Database       | SQLite (users & conversations)                      |
-| AI Model       | Google Gemini 2.0 (REST API)                        |
-| Auth Sessions  | Flask secure cookies                                |
+Create a Python virtual environment
 
----
+Install the required packages using requirements.txt
 
-## ✨ Key Features
+Create a .env file with your Gemini API key and a secret key
 
-| Feature                     | Done | Planned |
-|----------------------------|:----:|:-------:|
-| Secure register / login    | ✅   |         |
-| Real-time chat UI          | ✅   |         |
-| Voice-mode (hands-free)    | ✅   |         |
-| Live stats & streaks       | ✅   |         |
-| Lessons / vocab pages      | 🚧   |  soon   |
-| Achievements & badges      | 🚧   |  soon   |
-| Multi-language support     | 🚧   |  soon   |
+Run app.py and visit http://localhost:5000 in your browser
 
----
+Project Structure
+app.py: Flask server
 
-## 🔧 Local Setup
+templates/: HTML files for UI
 
-```bash
-# 1. Clone
-git clone https://github.com/your-user/lucy-ai.git
-cd lucy-ai
+static/: CSS and JS files
 
-# 2. Virtualenv
-python -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
+users.db: SQLite database (auto-created)
 
-# 3. Dependencies
-pip install -r requirements.txt
+README.md: Project documentation
 
-# 4. Environment variables
-echo "GEMINI_API_KEY=YOUR_GOOGLE_KEY" >> .env
-echo "SECRET_KEY=Ultra-Secret-Flask-Key" >> .env
+Contributing
+Fork this repository
 
-# 5. Run
-python app.py
-# Visit http://localhost:5000
-````
+Create a new branch for your feature or fix
 
----
+Make your changes with clear commit messages
 
-## 📂 Project Structure
+Push and open a Pull Request
 
-```
-lucy-ai/
-├── app.py               # Flask server
-├── templates/
-│   ├── index.html       # Landing / auth
-│   └── dashboard.html   # Main UI
-├── static/
-│   ├── style1.css
-│   └── script1.js
-├── users.db             # SQLite – auto-created
-└── README.md
-```
+You can also open issues to report bugs or suggest features
 
----
+All contributions are welcome 💡
 
-## 🤝 Contributing
+Support Lucy AI
+Lucy is totally free to use, but running servers and AI APIs costs money.
+If you’d like to help keep the project open and ad-free, you can support via:
 
-1. Fork the repo & create a feature branch:
+PhonePe: yogiguli@ybl
 
-   ```bash
-   git checkout -b feature/amazing-thing
-   ```
-2. Commit your changes with clear messages.
-3. Push and open a Pull Request – CI will run lint & tests.
-4. Feel free to open Issues for bugs or ideas.
+Google Pay: yogesh490807@okaxis
 
----
+Paytm: 9008587582@ptaxis
 
-## 💝 Support Lucy AI
+GitHub: ⭐ Star the repo to show support!
 
-Lucy is totally free to use, but servers & API calls aren’t.
-If you’d like to help keep the project ad-free and open-source:
+Even a small ₹5 means a lot. Thank you! 💜
 
-| Method     | Link / ID             |
-| ---------- | --------------------- |
-| PhonePe    | `yogiguli@ybl`        |
-| Google Pay | `yogesh490807@okaxis` |
-| Paytm      | `9008587582@ptaxis`   |
-| GitHub     | ⭐ Star this repo      |
+License
+This project is released under the MIT License.
+You’re free to use, modify, and distribute it with proper attribution.
 
-Even a single ₹ helps – thank you! 💜
+“Sharing knowledge is the most powerful way to grow.” – Lucy
 
----
+Made with ❤️ & caffeine in Bangalore
 
-## 📝 License
+Let me know if you'd like to:
 
-Released under the MIT License – see `LICENSE` file.
+Add your real GitHub repo link
 
-> “Sharing knowledge is the most powerful way to grow.” – Lucy
+Include demo screenshots
 
----
-
-<p align="center">
-  Made with ❤️ & caffeine in Bangalore
-</p>
-```
-
-Let me know if you’d like a version with emojis removed or with dark-mode screenshots/logos added.
-# Lucy AI
-An AI assistant To learn Any language and Specifically English communication for free This app is developed using python flask for backend and HTML CSS JavaScript for front end and Sqlite for database
+Add deploy instructions for platforms like Vercel, Render, etc.
