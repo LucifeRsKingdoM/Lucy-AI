@@ -1,5 +1,39 @@
 // script1.js - Lucy AI Dashboard JavaScript
 
+
+// ================================
+// MOBILE CRASH PREVENTION - ADD THIS FIRST!
+// ================================
+
+// Detect mobile and prevent crashes
+window.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+window.isLowEndDevice = window.isMobile && (navigator.hardwareConcurrency <= 2 || navigator.deviceMemory <= 2);
+
+console.log('🔧 Mobile Detection:', {
+    isMobile: window.isMobile,
+    isLowEndDevice: window.isLowEndDevice,
+    userAgent: navigator.userAgent
+});
+
+// Global error prevention
+window.addEventListener('error', function(e) {
+    console.error('🚨 Global error caught:', e.error);
+    e.preventDefault();
+    return true;
+});
+
+window.addEventListener('unhandledrejection', function(e) {
+    console.error('🚨 Unhandled promise rejection:', e.reason);
+    e.preventDefault();
+});
+
+// Mobile performance mode
+if (window.isMobile) {
+    document.documentElement.classList.add('mobile-device');
+    console.log('📱 Mobile optimizations enabled');
+}
+
+
 // ================================
 // GLOBAL VARIABLES & CONFIGURATION
 // ================================
@@ -221,24 +255,35 @@ function toggleUIElements(disable = false) {
 }
 
 // ================================
-// SPEECH RECOGNITION & SYNTHESIS
+// OPTIMIZED VOICE MANAGER - REPLACE ENTIRE CLASS
 // ================================
+
 class VoiceManager {
     constructor() {
-        this.voices              = [];
-        this.currentVoice        = null;
-        this.isInitialized       = false;
-        this.speechSynthesis     = window.speechSynthesis;
-        this.lastRecordingStart  = 0;   // for watchdog
-        this.lastSpeechStart     = 0;   // for watchdog
+        this.voices = [];
+        this.currentVoice = null;
+        this.isInitialized = false;
+        this.speechSynthesis = window.speechSynthesis;
+        this.lastRecordingStart = 0;
+        this.lastSpeechStart = 0;
+        this.recognition = null;
+        this.isDestroyed = false;
+        this.maxRetries = 3;
+        this.retryCount = 0;
+        this.timeouts = new Set(); // Track timeouts for cleanup
 
-        logger.info('VoiceManager initializing…');
+        logger.info('VoiceManager initializing with mobile optimizations...');
         this.init();
     }
 
-    /* ----------  bootstrap ---------- */
     async init() {
         try {
+            // Skip voice features on low-end devices
+            if (window.isLowEndDevice) {
+                logger.warn('Low-end device detected, voice features disabled');
+                return;
+            }
+
             await this.loadVoices();
             this.setupSpeechRecognition();
             this.isInitialized = true;
@@ -260,65 +305,86 @@ class VoiceManager {
             };
             loadVoices();
             this.speechSynthesis.onvoiceschanged = loadVoices;
-            setTimeout(() => resolve(), 1000);  // fallback
+            
+            // Shorter timeout for mobile
+            const timeout = setTimeout(() => resolve(), window.isMobile ? 500 : 1000);
+            this.timeouts.add(timeout);
         });
     }
 
     selectVoice(lang = 'en') {
-        this.currentVoice =
-            this.voices.find(v =>
-                v.lang.startsWith(lang) && /female/i.test(v.name)) ||
-            this.voices.find(v => v.lang.startsWith(lang)) ||
-            this.voices[0];
+        this.currentVoice = this.voices.find(v => 
+            v.lang.startsWith(lang) && /female/i.test(v.name)
+        ) || this.voices.find(v => v.lang.startsWith(lang)) || this.voices[0];
+        
         logger.info('Selected voice:', this.currentVoice?.name || 'default');
     }
 
-    /* ----------  speech-recognition ---------- */
     setupSpeechRecognition() {
+        // Clean up existing recognition
+        this.cleanupRecognition();
+
         const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SR) {
-            logger.error('Speech recognition not supported in this browser');
+            logger.error('Speech recognition not supported');
             return;
         }
 
-        recognition                = new SR();
-        recognition.lang           = currentLanguage;
-        recognition.continuous     = false;
-        recognition.interimResults = true;
-        recognition.maxAlternatives = 1;
+        this.recognition = new SR();
+        this.recognition.lang = currentLanguage;
+        this.recognition.continuous = false;
+        this.recognition.interimResults = window.isMobile ? false : true; // Disable interim on mobile
+        this.recognition.maxAlternatives = 1;
 
-        recognition.onstart = () => {
-            isRecording           = true;
+        // Mobile-optimized event handlers
+        this.recognition.onstart = () => {
+            if (this.isDestroyed) return;
+            isRecording = true;
             this.lastRecordingStart = Date.now();
-            logger.voice('🎙️  Listening…');
-            this.showVoiceIndicator('Listening…');
+            logger.voice('🎙️ Listening...');
+            this.showVoiceIndicator('Listening...');
         };
 
-        recognition.onresult = (e) => {
-            const i          = e.resultIndex;
+        this.recognition.onresult = (e) => {
+            if (this.isDestroyed) return;
+            const i = e.resultIndex;
             const transcript = e.results[i][0].transcript;
             if (e.results[i].isFinal) {
                 this.processSpeechResult(transcript);
-            } else {
+            } else if (!window.isMobile) {
                 this.showInterimResult(transcript);
             }
         };
 
-        recognition.onerror = (e) => {
+        this.recognition.onerror = (e) => {
+            if (this.isDestroyed) return;
             isRecording = false;
             logger.error('Speech recognition error:', e.error);
+            
             if (e.error === 'not-allowed') {
-                showToast('error','Permission Denied','Microphone access needed');
+                showToast('error', 'Permission Denied', 'Microphone access needed');
                 this.stopVoiceMode();
+            } else if (e.error === 'network') {
+                this.retryCount++;
+                if (this.retryCount < this.maxRetries && voiceModeActive) {
+                    const timeout = setTimeout(() => this.startListening(), 2000);
+                    this.timeouts.add(timeout);
+                } else {
+                    this.stopVoiceMode();
+                    showToast('error', 'Network Error', 'Voice recognition failed');
+                }
             } else if (voiceModeActive && shouldContinueListening) {
-                setTimeout(() => this.startListening(), 1500);
+                const timeout = setTimeout(() => this.startListening(), 1500);
+                this.timeouts.add(timeout);
             }
         };
 
-        recognition.onend = () => {
+        this.recognition.onend = () => {
+            if (this.isDestroyed) return;
             isRecording = false;
             if (voiceModeActive && shouldContinueListening && !isSpeaking && !isProcessing) {
-                setTimeout(() => this.startListening(), 500);
+                const timeout = setTimeout(() => this.startListening(), 500);
+                this.timeouts.add(timeout);
             }
         };
 
@@ -326,148 +392,316 @@ class VoiceManager {
     }
 
     startListening() {
-        if (!voiceModeActive || isRecording || isSpeaking || isProcessing) return;
+        if (!voiceModeActive || isRecording || isSpeaking || isProcessing || this.isDestroyed) {
+            return;
+        }
+        
         try {
-            recognition.start();
-        } catch { /* ignore “already started” */ }
+            this.recognition?.start();
+        } catch (error) {
+            logger.error('Failed to start recognition:', error);
+        }
     }
 
     stopListening() {
-        if (isRecording) recognition.stop();
+        if (isRecording && this.recognition) {
+            this.recognition.stop();
+        }
         isRecording = false;
     }
 
     processSpeechResult(text) {
         text = text.trim();
-        if (!text) return;
+        if (!text || this.isDestroyed) return;
+        
+        logger.voice(`User said: "${text}"`);
+        
         this.hideVoiceIndicator();
-        elements.messageInput && (elements.messageInput.value = text);
+        if (elements.messageInput) {
+            elements.messageInput.value = text;
+        }
+        
+        // Stop listening while processing
+        shouldContinueListening = false;
+        
+        // Send the message (this will trigger AI response and speech)
         sendMessage(text);
     }
 
     showInterimResult(text) {
-        elements.messageInput && (elements.messageInput.value = text);
+        if (elements.messageInput && !window.isMobile) {
+            elements.messageInput.value = text;
+        }
     }
 
-    /* ----------  speech-synthesis ---------- */
     async speak(text) {
-        if (!text || isSpeaking) return;
+        if (!text || isSpeaking || this.isDestroyed) return;
+        
         return new Promise(resolve => {
             this.speechSynthesis.cancel();
 
-            const clean = text.replace(/\*/g,'')
-                              .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu,'')
-                              .replace(/\n/g,' ')
+            const clean = text.replace(/\*/g, '')
+                              .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '')
+                              .replace(/\n/g, ' ')
                               .trim();
+            
             if (!clean) return resolve();
 
-            const u        = new SpeechSynthesisUtterance(clean);
-            u.voice        = this.currentVoice;
-            u.rate         = 0.9;
-            u.pitch        = 1.1;
+            const utterance = new SpeechSynthesisUtterance(clean);
+            utterance.voice = this.currentVoice;
+            utterance.rate = window.isMobile ? 1.0 : 0.9; // Faster on mobile
+            utterance.pitch = 1.1;
 
-            u.onstart = () => {
-                isSpeaking          = true;
+            utterance.onstart = () => {
+                if (this.isDestroyed) return;
+                isSpeaking = true;
                 this.lastSpeechStart = Date.now();
-                this.showVoiceIndicator('Speaking…');
+                this.showVoiceIndicator('Speaking...');
             };
-            u.onend   = () => { this.finishSpeaking(); resolve(); };
-            u.onerror = () => { this.finishSpeaking(); resolve(); };
 
-            this.speechSynthesis.speak(u);
+            utterance.onend = () => {
+                this.finishSpeaking();
+                resolve();
+            };
+
+            utterance.onerror = () => {
+                this.finishSpeaking();
+                resolve();
+            };
+
+            this.speechSynthesis.speak(utterance);
         });
     }
 
     finishSpeaking() {
+        if (this.isDestroyed) return;
         isSpeaking = false;
         this.hideVoiceIndicator();
-        if (voiceModeActive && shouldContinueListening) {
-            setTimeout(() => this.startListening(), 800);
+        
+        // Only start listening if we're in voice mode and should continue
+        if (voiceModeActive && shouldContinueListening && !isProcessing) {
+            logger.voice('Speech finished, starting to listen for user input...');
+            const timeout = setTimeout(() => {
+                if (voiceModeActive && shouldContinueListening && !isProcessing) {
+                    this.startListening();
+                }
+            }, 800);
+            this.timeouts.add(timeout);
         }
     }
 
-    /* ----------  UI helpers ---------- */
     showVoiceIndicator(text) {
-        elements.voiceIndicator?.classList.add('active');
-        if (elements.voiceText) elements.voiceText.textContent = text;
+        if (elements.voiceIndicator) {
+            elements.voiceIndicator.classList.add('active');
+        }
+        if (elements.voiceText) {
+            elements.voiceText.textContent = text;
+        }
         this.animateVoiceWaves(true);
     }
+
     hideVoiceIndicator() {
-        elements.voiceIndicator?.classList.remove('active');
+        if (elements.voiceIndicator) {
+            elements.voiceIndicator.classList.remove('active');
+        }
         this.animateVoiceWaves(false);
     }
+
     animateVoiceWaves(active) {
         elements.voiceWaves.forEach(w => {
-            w.style.animationPlayState = active ? 'running' : 'paused';
+            if (w) {
+                w.style.animationPlayState = active ? 'running' : 'paused';
+            }
         });
     }
 
-    /* ----------  VOICE MODE TOGGLE ---------- */
     async toggleVoiceMode() {
-        voiceModeActive ? this.stopVoiceMode() : await this.startVoiceMode();
+        if (voiceModeActive) {
+            this.stopVoiceMode();
+        } else {
+            await this.startVoiceMode();
+        }
     }
 
     async startVoiceMode() {
         try {
             logger.voice('🔊 Voice mode ON');
-            isVoiceMode            = true;
-            voiceModeActive        = true;
-            shouldContinueListening = false;
+            isVoiceMode = true;
+            voiceModeActive = true;
+            shouldContinueListening = false; // Important: Don't start listening yet!
+            this.retryCount = 0;
 
+            // Stop any existing activities
             this.stopListening();
-            window.speechSynthesis.cancel();
+            this.speechSynthesis.cancel();
 
-            // button looks
+            // Update UI
             if (elements.switchModeBtn) {
-                elements.switchModeBtn.querySelector('i').className = 'fas fa-keyboard';
-                elements.switchModeBtn.querySelector('span').textContent = 'Chat Mode';
+                const icon = elements.switchModeBtn.querySelector('i');
+                const span = elements.switchModeBtn.querySelector('span');
+                if (icon) icon.className = 'fas fa-keyboard';
+                if (span) span.textContent = 'Chat Mode';
                 elements.switchModeBtn.classList.add('active');
             }
+            
             toggleUIElements(true);
-            showToast('success','Voice Mode Active','I’m listening!');
+            showToast('success', 'Voice Mode Active', 'Starting conversation...');
 
-            // automatic kick-off message
-            const username = document.querySelector('.user-name')?.textContent.trim() || 'friend';
-            const kickoff  = `Hi Lucy, I'm ${username}. Let’s practise my English.`;
-
+            // STEP 1: Send automatic greeting message to AI
+            const username = document.querySelector('.user-name')?.textContent?.trim() || 
+                            document.querySelector('.highlight')?.textContent?.trim() || 
+                            'friend';
+            
+            const automaticMessage = `Hi Lucy, I'm ${username}. Let's practice my English conversation today.`;
+            
+            logger.voice(`Sending automatic greeting: "${automaticMessage}"`);
+            
+            // Set processing state
             isProcessing = true;
-            await sendMessage(kickoff);   // speak() will run inside sendMessage
-            isProcessing = false;
+            
+            // Display the automatic user message
+            displayMessage(automaticMessage, 'user');
+            
+            // Update stats
+            messageCount++;
+            wordCount += automaticMessage.split(' ').length;
+            updateLiveStats();
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // STEP 2: Send to AI and get response
+            try {
+                const response = await fetch('/process', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        text: automaticMessage,
+                        language: currentLanguage,
+                        timestamp: new Date().toISOString()
+                    }),
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                const aiResponse = data.response || "Hello! I'm Lucy, ready to help you practice English!";
+                
+                // Hide typing indicator
+                hideTypingIndicator();
+                
+                // STEP 3: Display AI response
+                displayMessage(aiResponse, 'ai');
+                
+                logger.voice(`AI responded: "${aiResponse.substring(0, 50)}..."`);
+                
+                // STEP 4: Speak the AI response
+                logger.voice('Speaking AI response...');
+                await this.speak(aiResponse);
+                
+                logger.voice('AI finished speaking, now ready for user input');
+                
+                // STEP 5: NOW start listening for user input
+                isProcessing = false;
+                shouldContinueListening = true;
+                
+                // Small delay before starting to listen
+                const timeout = setTimeout(() => {
+                    if (voiceModeActive && shouldContinueListening) {
+                        this.startListening();
+                        logger.voice('👂 Now listening for your response...');
+                    }
+                }, 1000);
+                this.timeouts.add(timeout);
+                
+            } catch (error) {
+                logger.error('Error in voice mode startup:', error);
+                hideTypingIndicator();
+                
+                // Fallback AI message
+                const fallbackMessage = "Hello! I'm Lucy, your English practice companion. How are you today?";
+                displayMessage(fallbackMessage, 'ai');
+                
+                // Speak fallback and start listening
+                await this.speak(fallbackMessage);
+                isProcessing = false;
+                shouldContinueListening = true;
+                
+                const timeout = setTimeout(() => {
+                    if (voiceModeActive && shouldContinueListening) {
+                        this.startListening();
+                    }
+                }, 1000);
+                this.timeouts.add(timeout);
+            }
 
-            shouldContinueListening = true;
-            setTimeout(() => this.startListening(), 800);
         } catch (err) {
-            logger.error('Voice-mode bootstrap failed', err);
-            showToast('error','Voice Error','Could not start voice mode');
+            logger.error('Voice mode start failed', err);
+            showToast('error', 'Voice Error', 'Could not start voice mode');
             this.stopVoiceMode();
+            isProcessing = false;
         }
     }
 
     stopVoiceMode() {
         logger.voice('🔇 Voice mode OFF');
-        this.stopListening();
-        window.speechSynthesis.cancel();
+        this.cleanup();
 
-        isVoiceMode            = false;
-        voiceModeActive        = false;
+        isVoiceMode = false;
+        voiceModeActive = false;
         shouldContinueListening = false;
-        isRecording            = false;
-        isSpeaking             = false;
-        isProcessing           = false;
+        isRecording = false;
+        isSpeaking = false;
+        isProcessing = false;
 
+        // Update UI
         if (elements.switchModeBtn) {
-            elements.switchModeBtn.querySelector('i').className = 'fas fa-microphone';
-            elements.switchModeBtn.querySelector('span').textContent = 'Voice Mode';
+            const icon = elements.switchModeBtn.querySelector('i');
+            const span = elements.switchModeBtn.querySelector('span');
+            if (icon) icon.className = 'fas fa-microphone';
+            if (span) span.textContent = 'Voice Mode';
             elements.switchModeBtn.classList.remove('active');
         }
+
         toggleUIElements(false);
         this.hideVoiceIndicator();
-        showToast('success','Chat Mode Active','Voice mode disabled');
+        showToast('success', 'Chat Mode Active', 'Voice mode disabled');
+    }
+
+    cleanup() {
+        this.stopListening();
+        this.speechSynthesis.cancel();
+        
+        // Clear all timeouts
+        this.timeouts.forEach(timeout => clearTimeout(timeout));
+        this.timeouts.clear();
+    }
+
+    cleanupRecognition() {
+        if (this.recognition) {
+            this.recognition.onstart = null;
+            this.recognition.onresult = null;
+            this.recognition.onerror = null;
+            this.recognition.onend = null;
+            this.recognition = null;
+        }
+    }
+
+    destroy() {
+        this.isDestroyed = true;
+        this.cleanup();
+        this.cleanupRecognition();
+        logger.info('VoiceManager destroyed');
     }
 }
 
 // ================================
-// CHAT FUNCTIONALITY
+// OPTIMIZED SEND MESSAGE FUNCTION
 // ================================
 
 async function sendMessage(text) {
@@ -477,28 +711,43 @@ async function sendMessage(text) {
         return;
     }
     
-    logger.info(`Sending message: "${trimmedText}"`);
+    logger.info(`Sending message: "${trimmedText.substring(0, 50)}..."`);
     
-    // Set processing state
-    isProcessing = true;
-    
-    // Display user message
-    displayMessage(trimmedText, 'user');
-    
-    // Clear input
-    if (elements.messageInput) {
-        elements.messageInput.value = '';
+    // Prevent double processing
+    if (isProcessing) {
+        logger.warn('Already processing a message, ignoring duplicate');
+        return;
     }
     
-    // Update stats
-    messageCount++;
-    wordCount += trimmedText.split(' ').length;
-    updateLiveStats();
-    
-    // Show typing indicator
-    showTypingIndicator();
+    isProcessing = true;
+    let timeoutId = null;
     
     try {
+        // Display user message
+        displayMessage(trimmedText, 'user');
+        
+        // Clear input
+        if (elements.messageInput) {
+            elements.messageInput.value = '';
+        }
+        
+        // Update stats
+        messageCount++;
+        wordCount += trimmedText.split(' ').length;
+        updateLiveStats();
+        
+        // Show typing indicator
+        showTypingIndicator();
+        
+        // Set request timeout for mobile
+        const timeoutDuration = window.isMobile ? 15000 : 30000;
+        const controller = new AbortController();
+        
+        timeoutId = setTimeout(() => {
+            controller.abort();
+            logger.error('Request timeout');
+        }, timeoutDuration);
+        
         logger.info('Making API request to /process');
         performanceLogger.apiCalls++;
         
@@ -513,8 +762,10 @@ async function sendMessage(text) {
                 language: currentLanguage,
                 timestamp: new Date().toISOString()
             }),
+            signal: controller.signal
         });
         
+        clearTimeout(timeoutId);
         logger.info(`API Response status: ${response.status}`);
         
         if (!response.ok) {
@@ -522,7 +773,7 @@ async function sendMessage(text) {
         }
         
         const data = await response.json();
-        logger.success('API response received:', data);
+        logger.success('API response received');
         
         const aiResponse = data.response || "Sorry, I didn't get a response from the server.";
         
@@ -532,47 +783,396 @@ async function sendMessage(text) {
         // Display AI response
         displayMessage(aiResponse, 'ai');
         
-        // Handle voice mode
-        if (voiceModeActive && speechManager) {
-            logger.voice('Voice mode active, speaking AI response');
-            await speechManager.speak(aiResponse);
+        // ========================================
+        // CORRECTED VOICE MODE HANDLING
+        // ========================================
+        if (voiceModeActive && speechManager && !speechManager.isDestroyed) {
+            try {
+                logger.voice('Voice mode active - speaking AI response...');
+                
+                // IMPORTANT: Stop listening while AI is speaking
+                shouldContinueListening = false;
+                speechManager.stopListening();
+                
+                // Speak the AI response
+                await speechManager.speak(aiResponse);
+                
+                logger.voice('AI finished speaking, preparing to listen for user input...');
+                
+                // IMPORTANT: After AI finishes speaking, start listening for user input
+                if (voiceModeActive) { // Double check voice mode is still active
+                    shouldContinueListening = true;
+                    
+                    // Small delay before starting to listen
+                    setTimeout(() => {
+                        if (voiceModeActive && shouldContinueListening && speechManager && !speechManager.isDestroyed) {
+                            speechManager.startListening();
+                            logger.voice('👂 Now listening for your response...');
+                        }
+                    }, 1000);
+                }
+                
+            } catch (speechError) {
+                logger.error('Speech synthesis failed:', speechError);
+                
+                // Even if speech fails, still enable listening
+                if (voiceModeActive) {
+                    shouldContinueListening = true;
+                    setTimeout(() => {
+                        if (voiceModeActive && speechManager && !speechManager.isDestroyed) {
+                            speechManager.startListening();
+                            logger.voice('👂 Speech failed, but now listening for your response...');
+                        }
+                    }, 1000);
+                }
+            }
         }
         
         // Check for achievements
         checkAchievements();
         
-        logger.success('Message sent and processed successfully');
+        logger.success('Message processed successfully');
         
     } catch (error) {
+        clearTimeout(timeoutId);
         logger.error('Error sending message:', error);
         hideTypingIndicator();
         
-        const errorMessage = 'Sorry, I encountered an error. Please try again! 😔';
-        displayMessage(errorMessage, 'ai');
+        let errorMessage = 'Sorry, I encountered an error. Please try again! 😔';
         
-        showToast('error', 'Connection Error', 'Failed to send message. Please check your connection.');
-        
-        // In voice mode, speak the error
-        if (voiceModeActive && speechManager) {
-            await speechManager.speak(errorMessage);
+        if (error.name === 'AbortError') {
+            errorMessage = 'Request timed out. Please check your connection and try again.';
+        } else if (!navigator.onLine) {
+            errorMessage = 'You appear to be offline. Please check your connection.';
         }
+        
+        displayMessage(errorMessage, 'ai');
+        showToast('error', 'Connection Error', 'Failed to send message');
+        
+        // ========================================
+        // VOICE MODE ERROR HANDLING
+        // ========================================
+        if (voiceModeActive && speechManager && !speechManager.isDestroyed) {
+            try {
+                logger.voice('Speaking error message...');
+                
+                // Stop listening while speaking error
+                shouldContinueListening = false;
+                speechManager.stopListening();
+                
+                // Speak the error message
+                await speechManager.speak(errorMessage);
+                
+                // After error message, resume listening
+                if (voiceModeActive) {
+                    shouldContinueListening = true;
+                    setTimeout(() => {
+                        if (voiceModeActive && speechManager && !speechManager.isDestroyed) {
+                            speechManager.startListening();
+                            logger.voice('👂 Error spoken, now listening again...');
+                        }
+                    }, 1000);
+                }
+                
+            } catch (speechError) {
+                logger.error('Error speech failed:', speechError);
+                
+                // Resume listening even if error speech fails
+                if (voiceModeActive) {
+                    shouldContinueListening = true;
+                    setTimeout(() => {
+                        if (voiceModeActive && speechManager && !speechManager.isDestroyed) {
+                            speechManager.startListening();
+                        }
+                    }, 1000);
+                }
+            }
+        }
+        
     } finally {
         isProcessing = false;
         logger.info('Message processing completed');
     }
+}
+
+// Add this function after your VoiceManager class
+function logVoiceModeState(action) {
+    logger.voice(`🎤 Voice Mode State: ${action}`, {
+        voiceModeActive,
+        isRecording,
+        isSpeaking,
+        isProcessing,
+        shouldContinueListening
+    });
+}
+
+
+// ================================
+// CHAT MAXIMIZE/MINIMIZE FUNCTIONALITY
+// ================================
+
+let isChatMaximized = false;
+let maximizedChatElements = {};
+
+function initializeChatMaximize() {
+    logger.info('Initializing chat maximize functionality...');
     
-    // If the user has typed while Lucy was talking, stop the speech immediately
-    if (speechManager && isSpeaking) {
-        window.speechSynthesis.cancel();
-        isSpeaking = false;
+    // Cache maximized chat elements
+    maximizedChatElements = {
+        overlay: document.getElementById('chatMaximizedOverlay'),
+        messages: document.getElementById('maximizedChatMessages'),
+        input: document.getElementById('maximizedMessageInput'),
+        sendBtn: document.getElementById('maximizedSendBtn'),
+        suggestions: document.getElementById('maximizedChatSuggestions'),
+        maximizeBtn: document.getElementById('maximizeBtn'),
+        minimizeBtn: document.getElementById('minimizeBtn'),
+        closeBtn: document.getElementById('closeMaximizedBtn')
+    };
+    
+    // Maximize button click
+    if (maximizedChatElements.maximizeBtn) {
+        maximizedChatElements.maximizeBtn.addEventListener('click', maximizeChat);
+    }
+    
+    // Minimize button click
+    if (maximizedChatElements.minimizeBtn) {
+        maximizedChatElements.minimizeBtn.addEventListener('click', minimizeChat);
+    }
+    
+    // Close button click
+    if (maximizedChatElements.closeBtn) {
+        maximizedChatElements.closeBtn.addEventListener('click', minimizeChat);
+    }
+    
+    // Maximized send button
+    if (maximizedChatElements.sendBtn) {
+        maximizedChatElements.sendBtn.addEventListener('click', () => {
+            if (maximizedChatElements.input && maximizedChatElements.input.value.trim()) {
+                sendMessage(maximizedChatElements.input.value.trim());
+            }
+        });
+    }
+    
+    // Maximized input enter key
+    if (maximizedChatElements.input) {
+        maximizedChatElements.input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (maximizedChatElements.input.value.trim()) {
+                    sendMessage(maximizedChatElements.input.value.trim());
+                }
+            }
+        });
+    }
+    
+    // Maximized suggestion chips
+    if (maximizedChatElements.suggestions) {
+        maximizedChatElements.suggestions.addEventListener('click', (e) => {
+            if (e.target.classList.contains('suggestion-chip')) {
+                const text = e.target.getAttribute('data-text') || e.target.textContent;
+                if (maximizedChatElements.input) {
+                    maximizedChatElements.input.value = text;
+                }
+                sendMessage(text);
+            }
+        });
+    }
+    
+    // ESC key to minimize
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isChatMaximized) {
+            minimizeChat();
+        }
+    });
+    
+    // Click outside to minimize (optional)
+    if (maximizedChatElements.overlay) {
+        maximizedChatElements.overlay.addEventListener('click', (e) => {
+            if (e.target === maximizedChatElements.overlay) {
+                minimizeChat();
+            }
+        });
+    }
+    
+    logger.success('Chat maximize functionality initialized');
 }
+
+function maximizeChat() {
+    if (voiceModeActive) {
+        showToast('warning', 'Voice Mode Active', 'Please exit voice mode first');
+        return;
+    }
+    
+    logger.info('Maximizing chat...');
+    
+    isChatMaximized = true;
+    
+    // Show maximized overlay
+    if (maximizedChatElements.overlay) {
+        maximizedChatElements.overlay.classList.add('active');
+    }
+    
+    // Update maximize button
+    if (maximizedChatElements.maximizeBtn) {
+        maximizedChatElements.maximizeBtn.classList.add('maximized');
+        maximizedChatElements.maximizeBtn.querySelector('i').className = 'fas fa-compress';
+        maximizedChatElements.maximizeBtn.title = 'Minimize Chat';
+    }
+    
+    // Copy messages to maximized view
+    copyMessagesToMaximized();
+    
+    // Focus on maximized input
+    setTimeout(() => {
+        if (maximizedChatElements.input) {
+            maximizedChatElements.input.focus();
+        }
+    }, 300);
+    
+    // Scroll to bottom
+    setTimeout(() => {
+        if (maximizedChatElements.messages) {
+            maximizedChatElements.messages.scrollTop = maximizedChatElements.messages.scrollHeight;
+        }
+    }, 100);
+    
+    showToast('success', 'Chat Maximized', 'Full screen chat mode activated');
+    logger.success('Chat maximized successfully');
 }
+
+function minimizeChat() {
+    logger.info('Minimizing chat...');
+    
+    isChatMaximized = false;
+    
+    // Hide maximized overlay
+    if (maximizedChatElements.overlay) {
+        maximizedChatElements.overlay.classList.remove('active');
+    }
+    
+    // Update maximize button
+    if (maximizedChatElements.maximizeBtn) {
+        maximizedChatElements.maximizeBtn.classList.remove('maximized');
+        maximizedChatElements.maximizeBtn.querySelector('i').className = 'fas fa-expand';
+        maximizedChatElements.maximizeBtn.title = 'Maximize Chat';
+    }
+    
+    // Clear maximized input
+    if (maximizedChatElements.input) {
+        maximizedChatElements.input.value = '';
+    }
+    
+    // Focus back on original input
+    setTimeout(() => {
+        if (elements.messageInput) {
+            elements.messageInput.focus();
+        }
+    }, 300);
+    
+    logger.success('Chat minimized successfully');
+}
+
+function copyMessagesToMaximized() {
+    if (!maximizedChatElements.messages || !elements.chatBox) return;
+    
+    // Clear existing messages
+    maximizedChatElements.messages.innerHTML = '';
+    
+    // Copy all messages from original chat
+    const originalMessages = elements.chatBox.querySelectorAll('.message:not(.typing-indicator)');
+    originalMessages.forEach(msg => {
+        const clonedMessage = msg.cloneNode(true);
+        maximizedChatElements.messages.appendChild(clonedMessage);
+    });
+    
+    logger.info(`Copied ${originalMessages.length} messages to maximized view`);
+}
+
+// Update the original displayMessage function to also update maximized view
+const originalDisplayMessage = displayMessage;
+window.displayMessage = function(text, sender) {
+    // Call original function
+    originalDisplayMessage(text, sender);
+    
+    // If maximized, also add to maximized view
+    if (isChatMaximized && maximizedChatElements.messages) {
+        setTimeout(() => {
+            copyMessagesToMaximized();
+            maximizedChatElements.messages.scrollTop = maximizedChatElements.messages.scrollHeight;
+        }, 100);
+    }
+};
+
+// Clear maximized input after sending message
+const originalSendMessage = sendMessage;
+window.sendMessage = async function(text) {
+    await originalSendMessage(text);
+    
+    // Clear maximized input if message was sent from there
+    if (isChatMaximized && maximizedChatElements.input) {
+        maximizedChatElements.input.value = '';
+    }
+};
+
+
+// ================================
+// MEMORY MANAGEMENT FUNCTIONS
+// ================================
+
+function cleanupOldMessages() {
+    if (!elements.chatBox) return;
+    
+    const messages = elements.chatBox.querySelectorAll('.message');
+    const maxMessages = window.isMobile ? 50 : 100;
+    
+    if (messages.length > maxMessages) {
+        const messagesToRemove = messages.length - maxMessages;
+        for (let i = 0; i < messagesToRemove; i++) {
+            if (messages[i]) {
+                messages[i].remove();
+            }
+        }
+        logger.info(`Cleaned up ${messagesToRemove} old messages`);
+    }
+}
+
+function optimizePerformance() {
+    // Clean up old messages
+    cleanupOldMessages();
+    
+    // Force garbage collection if available
+    if (window.gc) {
+        window.gc();
+    }
+    
+    // Log memory usage
+    if (performance.memory) {
+        const memoryMB = Math.round(performance.memory.usedJSHeapSize / 1024 / 1024);
+        logger.info(`Memory usage: ${memoryMB}MB`);
+        
+        // Alert if memory usage is high
+        if (memoryMB > 100) {
+            logger.warn('High memory usage detected');
+            if (window.isMobile) {
+                showToast('warning', 'Performance', 'High memory usage - consider refreshing');
+            }
+        }
+    }
+}
+
+// Run cleanup every 2 minutes
+setInterval(optimizePerformance, 120000);
+
+
 
 function displayMessage(text, sender) {
     if (!elements.chatBox) {
         logger.error('Chat box not found');
         return;
     }
+    
+    // Clean up old messages first
+    cleanupOldMessages();
     
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}-message`;
@@ -582,30 +1182,44 @@ function displayMessage(text, sender) {
         minute: '2-digit' 
     });
     
+    // Sanitize text to prevent XSS
+    const sanitizedText = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    
     if (sender === 'ai') {
         messageDiv.innerHTML = `
             <div class="message-avatar">
-                <img src="https://ui-avatars.com/api/?name=Lucy&background=ec4899&color=fff&size=32" alt="Lucy">
+                <img src="https://ui-avatars.com/api/?name=Lucy&background=ec4899&color=fff&size=32" alt="Lucy" loading="lazy">
             </div>
             <div class="message-content">
-                <div class="message-bubble">${text}</div>
+                <div class="message-bubble">${sanitizedText}</div>
                 <span class="message-time">${time}</span>
             </div>
         `;
     } else {
         messageDiv.innerHTML = `
             <div class="message-content">
-                <div class="message-bubble">${text}</div>
+                            <div class="message-bubble">${sanitizedText}</div>
                 <span class="message-time">${time}</span>
             </div>
         `;
     }
     
     elements.chatBox.appendChild(messageDiv);
-    elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
     
-    logger.info(`Message displayed: ${sender} - ${text.substring(0, 50)}...`);
+    // Smooth scroll to bottom with mobile optimization
+    if (window.isMobile) {
+        elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
+    } else {
+        elements.chatBox.scrollTo({
+            top: elements.chatBox.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
+    
+    logger.info(`Message displayed: ${sender} - ${sanitizedText.substring(0, 50)}...`);
 }
+
+
 
 function showTypingIndicator() {
     if (!elements.chatBox) return;
@@ -1577,6 +2191,10 @@ function hideLoadingOverlay() {
     }
 }
 
+// ================================
+// OPTIMIZED APPLICATION INITIALIZATION
+// ================================
+
 async function initializeApplication() {
     logger.info('🚀 Starting Lucy AI Dashboard initialization...');
     
@@ -1586,37 +2204,49 @@ async function initializeApplication() {
         // Setup error handling first
         setupGlobalErrorHandling();
         
-        // Initialize core systems
+        // Initialize core systems based on device capabilities
         logger.info('Initializing core systems...');
         
-        // Initialize speech manager
-        speechManager = new VoiceManager();
-        
-        // Wait for speech manager to be ready
-        let attempts = 0;
-        while (!speechManager.isInitialized && attempts < 50) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
-        }
-        
-        if (!speechManager.isInitialized) {
-            logger.warn('Speech manager initialization timeout, continuing anyway');
-        }
-        
-        // Initialize UI components
+        // Initialize basic UI first
         initializeTabNavigation();
         initializeInputHandling();
         initializeSuggestionChips();
         initializeChatActions();
+        initializeModalHandling();
+        initializeLogout();
+        
+        // Initialize speech manager only if not low-end device
+        if (!window.isLowEndDevice) {
+            speechManager = new VoiceManager();
+            
+            // Don't wait too long for speech manager on mobile
+            const maxWait = window.isMobile ? 20 : 50;
+            let attempts = 0;
+            
+            while (!speechManager.isInitialized && attempts < maxWait) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+            
+            if (!speechManager.isInitialized) {
+                logger.warn('Speech manager initialization timeout, continuing anyway');
+            }
+        } else {
+            logger.info('Skipping speech manager on low-end device');
+            // Hide voice mode buttons
+            if (elements.switchModeBtn) elements.switchModeBtn.style.display = 'none';
+            if (elements.fabBtn) elements.fabBtn.style.display = 'none';
+        }
+        
+        // Initialize other systems
         initializeDonationSystem();
         initializeProfileSystem();
         initializeNotificationSystem();
-        initializeLogout();
-        initializeWelcomeOverlay();
-        initializeModalHandling();
+        initializeWelcomeOverlay();     
+        initializeChatMaximize();
         
-        // Check microphone permissions
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        // Request microphone permissions only if needed
+        if (!window.isLowEndDevice && !window.isMobile) {
             try {
                 await navigator.mediaDevices.getUserMedia({ audio: true });
                 logger.success('Microphone permissions granted');
@@ -1625,15 +2255,13 @@ async function initializeApplication() {
             }
         }
         
-        // Start session timer
-        setInterval(() => {
-            updateLiveStats();
-        }, 1000);
+        // Start timers with mobile optimization
+        const updateInterval = window.isMobile ? 2000 : 1000; // Less frequent on mobile
+        setInterval(updateLiveStats, updateInterval);
         
-        // Performance monitoring
-        setInterval(() => {
-            logPerformanceStats();
-        }, 60000); // Every minute
+        // Performance monitoring (less frequent on mobile)
+        const perfInterval = window.isMobile ? 300000 : 60000; // 5min vs 1min
+        setInterval(logPerformanceStats, perfInterval);
         
         // Load initial data
         updateLiveStats();
@@ -1647,17 +2275,21 @@ async function initializeApplication() {
         
         logger.success('✅ Lucy AI Dashboard initialization complete!');
         
-        // Show welcome message if new user
+        // Show welcome for new users
         if (!localStorage.getItem('returning_user')) {
-            setTimeout(() => {
-                showWelcomeOverlay();
-            }, 1000);
+            setTimeout(showWelcomeOverlay, 1000);
         }
         
     } catch (error) {
         logger.error('❌ Application initialization failed:', error);
         hideLoadingOverlay();
         showToast('error', 'Initialization Error', 'Failed to initialize application');
+        
+        // Fallback: at least show the chat interface
+        if (elements.chatContent) {
+            elements.chatContent.style.display = 'flex';
+            elements.chatContent.classList.add('active');
+        }
     }
 }
 
@@ -1697,49 +2329,86 @@ window.addEventListener('load', () => {
     }, 500);
 });
 
-// Page visibility change handler
+// ================================
+// IMPROVED PAGE VISIBILITY HANDLING
+// ================================
+
 document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
         logger.info('Page hidden - pausing activities');
         
-        // Pause voice recognition if active
+        // Stop voice mode completely when page is hidden
         if (voiceModeActive && speechManager) {
-            speechManager.stopListening();
+            speechManager.cleanup();
             shouldContinueListening = false;
         }
+        
+        // Cancel any ongoing API requests
+        if (window.currentFetchController) {
+            window.currentFetchController.abort();
+        }
+        
+        // Pause animations to save battery
+        document.querySelectorAll('*').forEach(el => {
+            if (el.style.animationPlayState !== undefined) {
+                el.style.animationPlayState = 'paused';
+            }
+        });
+        
     } else {
         logger.info('Page visible - resuming activities');
         
-        // Resume voice recognition if voice mode was active
-        if (voiceModeActive && speechManager) {
-            shouldContinueListening = true;
-            setTimeout(() => {
-                if (!isSpeaking && !isProcessing) {
-                    speechManager.startListening();
-                }
-            }, 1000);
+        // Resume animations
+        document.querySelectorAll('*').forEach(el => {
+            if (el.style.animationPlayState !== undefined) {
+                el.style.animationPlayState = 'running';
+            }
+        });
+        
+        // Don't auto-resume voice mode for better UX
+        if (isVoiceMode) {
+            showToast('info', 'Voice Mode', 'Voice mode paused. Click voice button to resume.');
         }
     }
 });
 
-// Before unload handler
+// ================================
+// IMPROVED CLEANUP ON PAGE UNLOAD
+// ================================
+
 window.addEventListener('beforeunload', (e) => {
+    // Clean up voice mode
+    if (voiceModeActive && speechManager) {
+        speechManager.destroy();
+    }
+    
+    // Cancel any ongoing requests
+    if (window.currentFetchController) {
+        window.currentFetchController.abort();
+    }
+    
+    // Save session data with error handling
+    try {
+        const sessionData = {
+            duration: Math.floor((new Date() - sessionStartTime) / 60000),
+            messages: messageCount,
+            words: wordCount,
+            endTime: new Date().toISOString(),
+            device: window.isMobile ? 'mobile' : 'desktop'
+        };
+        
+        localStorage.setItem('lastSession', JSON.stringify(sessionData));
+        logger.info('Session data saved before unload');
+    } catch (error) {
+        logger.error('Failed to save session data:', error);
+    }
+    
+    // Only show warning if voice mode is active
     if (voiceModeActive) {
         e.preventDefault();
         e.returnValue = 'Voice mode is active. Are you sure you want to leave?';
         return e.returnValue;
     }
-    
-    // Save session data
-    const sessionData = {
-        duration: Math.floor((new Date() - sessionStartTime) / 60000),
-        messages: messageCount,
-        words: wordCount,
-        endTime: new Date().toISOString()
-    };
-    
-    localStorage.setItem('lastSession', JSON.stringify(sessionData));
-    logger.info('Session data saved before unload');
 });
 
 // ================================
@@ -1838,6 +2507,92 @@ function initializeMobileHandlers() {
         document.documentElement.style.setProperty('--vh', `${vh}px`);
     }
 }
+
+// ================================
+// ENHANCED MOBILE OPTIMIZATIONS
+// ================================
+
+function initializeEnhancedMobileHandlers() {
+    if (!window.isMobile) return;
+    
+    logger.info('Initializing enhanced mobile optimizations...');
+    
+    // Optimize viewport handling
+    function updateViewportHeight() {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+    
+    updateViewportHeight();
+    window.addEventListener('resize', updateViewportHeight);
+    window.addEventListener('orientationchange', () => {
+        setTimeout(updateViewportHeight, 100);
+    });
+    
+    // Optimize touch interactions
+    document.addEventListener('touchstart', () => {}, { passive: true });
+    document.addEventListener('touchend', (e) => {
+        // Prevent zoom on double tap for interactive elements
+        if (e.target.matches('button, .btn, .menu-item, .suggestion-chip, input, textarea')) {
+            e.preventDefault();
+        }
+    });
+    
+    // Optimize scrolling performance
+    const scrollableElements = document.querySelectorAll('.chat-messages, .main-content, .content-section');
+    scrollableElements.forEach(el => {
+        el.style.webkitOverflowScrolling = 'touch';
+        el.style.overscrollBehavior = 'contain';
+    });
+    
+    // Optimize input handling
+    const inputs = document.querySelectorAll('input, textarea');
+    inputs.forEach(input => {
+        // Prevent zoom on focus
+        input.style.fontSize = '16px';
+        
+        // Handle virtual keyboard
+        input.addEventListener('focus', () => {
+            setTimeout(() => {
+                input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+        });
+    });
+    
+    // Battery optimization
+    if ('getBattery' in navigator) {
+        navigator.getBattery().then(battery => {
+            if (battery.level < 0.2 && !battery.charging) {
+                logger.warn('Low battery detected, enabling power save mode');
+                document.documentElement.classList.add('power-save-mode');
+                showToast('info', 'Power Save', 'Low battery - some features disabled');
+            }
+        });
+    }
+    
+    // Memory pressure handling
+    if ('memory' in performance) {
+        setInterval(() => {
+            const memoryInfo = performance.memory;
+            const usedMB = memoryInfo.usedJSHeapSize / 1024 / 1024;
+            const limitMB = memoryInfo.jsHeapSizeLimit / 1024 / 1024;
+            
+            if (usedMB / limitMB > 0.8) {
+                logger.warn('High memory pressure detected');
+                cleanupOldMessages();
+                
+                if (usedMB / limitMB > 0.9) {
+                    showToast('warning', 'Memory Warning', 'High memory usage - consider refreshing');
+                }
+            }
+        }, 30000);
+    }
+    
+    logger.success('Enhanced mobile optimizations initialized');
+}
+
+// Call this after the main initialization
+initializeEnhancedMobileHandlers();
 
 // ================================
 // NETWORK STATUS MONITORING
@@ -2223,3 +2978,98 @@ logger.info('Feature flags applied:', featureFlags);
 
 logger.success('🎉 Lucy AI Dashboard JavaScript fully loaded and ready!');
 logger.info('Total initialization time:', Math.round(performance.now()), 'ms');
+
+
+// ================================
+// FINAL ERROR RECOVERY & SAFETY NETS
+// ================================
+
+// Emergency recovery function
+window.emergencyRecovery = function() {
+    logger.warn('🚨 Emergency recovery initiated');
+    
+    // Stop all voice activities
+    if (speechManager) {
+        speechManager.destroy();
+    }
+    
+    // Clear all intervals and timeouts
+    const highestTimeoutId = setTimeout(() => {}, 0);
+    for (let i = 0; i < highestTimeoutId; i++) {
+        clearTimeout(i);
+        clearInterval(i);
+    }
+    
+    // Reset global state
+    isVoiceMode = false;
+    voiceModeActive = false;
+    isRecording = false;
+    isSpeaking = false;
+    isProcessing = false;
+    shouldContinueListening = false;
+    
+    // Show basic chat interface
+    if (elements.chatContent) {
+        elements.chatContent.style.display = 'flex';
+        elements.chatContent.classList.add('active');
+    }
+    
+    // Hide all modals
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+    });
+    
+    // Re-enable all UI elements
+    document.querySelectorAll('[disabled]').forEach(el => {
+        el.removeAttribute('disabled');
+        el.style.pointerEvents = 'auto';
+        el.style.opacity = '1';
+    });
+    
+    showToast('success', 'Recovery Complete', 'Application has been reset');
+    logger.info('✅ Emergency recovery completed');
+};
+
+// Auto-recovery on critical errors
+let criticalErrorCount = 0;
+window.addEventListener('error', (e) => {
+    criticalErrorCount++;
+    if (criticalErrorCount >= 5) {
+        logger.error('Multiple critical errors detected, initiating recovery');
+        window.emergencyRecovery();
+        criticalErrorCount = 0;
+    }
+});
+
+// Final initialization check
+setTimeout(() => {
+    if (!isInitialized) {
+        logger.error('Initialization failed, running emergency recovery');
+        window.emergencyRecovery();
+    }
+}, 10000);
+
+// Global debug helper for mobile
+if (window.isMobile) {
+    window.mobileDebug = {
+        getStatus: () => ({
+            initialized: isInitialized,
+            voiceMode: voiceModeActive,
+            memory: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1024 / 1024) + 'MB' : 'N/A',
+            battery: 'getBattery' in navigator ? 'Available' : 'N/A',
+            messages: messageCount,
+            errors: performanceLogger.errors
+        }),
+        recover: window.emergencyRecovery,
+        clearMessages: () => {
+            if (elements.chatBox) elements.chatBox.innerHTML = '';
+            messageCount = 0;
+            updateLiveStats();
+        }
+    };
+    
+    console.log('📱 Mobile debug tools available: window.mobileDebug');
+}
+
+logger.success('🎉 All optimizations and safety nets in place!');

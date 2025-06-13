@@ -165,12 +165,12 @@
                             <h3>Lucy AI</h3>
                             <p id="chatStatus">Your AI Language Companion</p>
                         </div>
-                        <div class="chat-actions">
+                      <div class="chat-actions">
                             <button class="chat-action-btn" id="clearChatBtn" title="Clear Chat">
                                 <i class="fas fa-trash"></i>
                             </button>
-                            <button class="chat-action-btn" id="exportChatBtn" title="Export Chat">
-                                <i class="fas fa-download"></i>
+                            <button class="chat-action-btn" id="maximizeBtn" title="Maximize Chat">
+                                <i class="fas fa-expand"></i>
                             </button>
                         </div>
                     </div>
@@ -622,16 +622,7 @@
             <button class="mark-all-read" id="markAllReadBtn">Mark all read</button>
         </div>
         <div class="notification-list" id="notificationList">
-            <div class="notification-item unread">
-                <div class="notification-icon">
-                    <i class="fas fa-trophy"></i>
-                </div>
-                <div class="notification-content">
-                    <h4>Achievement Unlocked!</h4>
-                    <p>You've sent your first message</p>
-                    <span class="notification-time">Just now</span>
-                </div>
-            </div>
+            
             
             <div class="notification-item">
                 <div class="notification-icon">
@@ -651,19 +642,7 @@
         </div>
     </div>
 
-    <!-- Achievement Toast -->
-    <div class="achievement-toast" id="achievementToast">
-        <div class="achievement-icon">
-            <i class="fas fa-trophy"></i>
-        </div>
-        <div class="achievement-content">
-            <h4 id="achievementTitle">Achievement Unlocked!</h4>
-            <p id="achievementDescription">You've completed your daily goal</p>
-        </div>
-        <button class="toast-close">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
+    
 
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
@@ -741,6 +720,59 @@
             <i class="fas fa-times"></i>
         </button>
     </div>
+
+    <!-- Maximized Chat Overlay -->
+<div class="chat-maximized-overlay" id="chatMaximizedOverlay">
+    <div class="chat-maximized-container">
+        <div class="chat-maximized-header">
+            <div class="chat-maximized-title">
+                <div class="chat-avatar">
+                    <div class="avatar-ring">
+                        <img src="https://ui-avatars.com/api/?name=Lucy&background=ec4899&color=fff" alt="Lucy">
+                    </div>
+                    <span class="online-indicator"></span>
+                </div>
+                <div>
+                    <h2>Lucy AI - Full Screen</h2>
+                    <div class="chat-maximized-status">
+                        <span class="status-dot"></span>
+                        <span>Your AI Language Companion</span>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-maximized-actions">
+                <button class="chat-maximize-btn" id="minimizeBtn" title="Minimize">
+                    <i class="fas fa-compress"></i>
+                </button>
+                <button class="chat-maximize-btn close" id="closeMaximizedBtn" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="chat-maximized-content">
+            <div class="chat-maximized-messages" id="maximizedChatMessages">
+                <!-- Messages will be copied here -->
+            </div>
+
+            <div class="chat-maximized-input-container">
+                <div class="chat-maximized-suggestions" id="maximizedChatSuggestions">
+                    <button class="suggestion-chip" data-text="How do I improve my pronunciation?">Pronunciation?</button>
+                    <button class="suggestion-chip" data-text="Let's practice conversation">Practice</button>
+                    <button class="suggestion-chip" data-text="Teach me new words">New Words</button>
+                    <button class="suggestion-chip" data-text="Help me with grammar">Grammar</button>
+                </div>
+
+                <div class="chat-maximized-input">
+                    <input type="text" id="maximizedMessageInput" placeholder="Type your message..." autocomplete="off">
+                    <button class="maximized-send-btn" id="maximizedSendBtn" title="Send">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- Include JavaScript -->
     <script src="{{ url_for('static', filename='script1.js') }}"></script>
