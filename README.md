@@ -1,14 +1,11 @@
-Here’s a properly formatted and polished `README.md` you can copy and paste directly into your VS Code project:
-
-````markdown
 <!-- ─────────────────────────────────────────────────────────────── -->
-<!--  LUCY AI – README                                               -->
+<!--  LUCY AI – README.md                                            -->
 <!--  “Learn any language by chatting with an AI friend.”           -->
-<!--  © 2024 Yogesh (MIT-licensed, still in active development)     -->
+<!--  © 2024 Yogesh | MIT License                                    -->
 <!-- ─────────────────────────────────────────────────────────────── -->
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/your-user/lucy-ai/main/assets/lucy_logo.svg" width="120" alt="Lucy AI logo">
+  <img src="https://raw.githubusercontent.com/LucifeRsKingdoM/Lucy-AI/main/static/media/mini-logo.png" width="120" alt="Lucy AI logo">
 </p>
 
 <h1 align="center">Lucy AI 🤖💬</h1>
@@ -16,92 +13,115 @@ Here’s a properly formatted and polished `README.md` you can copy and paste di
 <p align="center"><i>“Practice makes fluent.” – Lucy</i></p>
 
 <p align="center">
-  <a href="https://github.com/your-user/lucy-ai">
+  <a href="https://github.com/your-user/lucy-ai/stargazers">
     <img src="https://img.shields.io/github/stars/your-user/lucy-ai?style=social" alt="GitHub stars">
   </a>
   <a href="https://github.com/your-user/lucy-ai/fork">
     <img src="https://img.shields.io/github/forks/your-user/lucy-ai?style=social" alt="GitHub forks">
   </a>
-  <img src="https://img.shields.io/badge/status-🚧%20IN%20PROGRESS-orange" alt="Project status">
+  <img src="https://img.shields.io/badge/status-in%20progress-orange" alt="Project status">
   <img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs welcome">
 </p>
 
 ---
 
-## 🚀 What’s Lucy AI?
+## 🧠 About Lucy AI
 
-**Lucy AI** is a **100% free & open-source** web application that helps you master any language simply by chatting with an AI friend.  
-Lucy listens to your speech (or text), replies in short friendly messages, corrects grammar & pronunciation, and tracks your streak & progress.
+**Lucy AI** is a free and open-source AI language tutor that helps you improve your speaking skills in **English (and other languages soon!)**.
 
-> ⚠️ **Still under construction** – features & UI are evolving fast.  
-> Your feedback (and pull-requests!) are very welcome.
+🎙️ Talk or type — Lucy listens and responds with friendly replies, grammar corrections, and progress tracking.
 
----
-
-## 🧑‍💻 Tech Stack
-
-| Layer           | Tech                                                |
-|----------------|-----------------------------------------------------|
-| Front-end      | HTML + CSS • Font Awesome • Vanilla JS             |
-| Voice          | Web Speech API (speech-to-text & TTS)              |
-| Back-end       | Python / Flask                                      |
-| Database       | SQLite (users & conversations)                      |
-| AI Model       | Google Gemini 2.0 (REST API)                        |
-| Auth Sessions  | Flask secure cookies                                |
+> ⚠️ Project under active development — more features arriving weekly!
 
 ---
 
-## ✨ Key Features
+## 🛠️ Tech Stack
 
-| Feature                     | Done | Planned |
-|----------------------------|:----:|:-------:|
-| Secure register / login    | ✅   |         |
-| Real-time chat UI          | ✅   |         |
-| Voice-mode (hands-free)    | ✅   |         |
-| Live stats & streaks       | ✅   |         |
-| Lessons / vocab pages      | 🚧   |  soon   |
-| Achievements & badges      | 🚧   |  soon   |
-| Multi-language support     | 🚧   |  soon   |
+| Layer         | Technologies                                         |
+|---------------|------------------------------------------------------|
+| 🎨 Frontend   | HTML, CSS, Vanilla JS, Font Awesome                  |
+| 🎤 Voice      | Web Speech API (Speech-to-Text + Text-to-Speech)     |
+| 🔧 Backend    | Python, Flask                                         |
+| 🗃️ Database   | SQLite (local file-based DB)                         |
+| 🧠 AI Model   | Google Gemini 2.0 (via REST API)                      |
+| 🔐 Sessions   | Flask secure cookies                                  |
 
 ---
 
-## 🔧 Local Setup
+## ✨ Features
+
+| Feature                      | Status     |
+|-----------------------------|------------|
+| 🔐 User Register/Login       | ✅ Done     |
+| 💬 Real-time Chat UI         | ✅ Done     |
+| 🎙️ Voice Mode (hands-free)   | ✅ Done     |
+| 📊 Streaks & Progress Stats  | ✅ Done     |
+| 📚 Lessons & Vocabulary      | 🚧 Coming Soon |
+| 🏆 Badges & Achievements     | 🚧 Coming Soon |
+| 🌍 Multi-language Support    | 🚧 Coming Soon |
+
+---
+
+## 📸 Demo Screenshot
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/your-user/lucy-ai/main/assets/demo.png" alt="Lucy AI screenshot" width="80%">
+</p>
+
+![Screenshot 2025-06-12 011919](https://github.com/user-attachments/assets/26cb6636-1912-4281-bb13-6e5a3fa42fce)
+
+![Screenshot 2025-06-12 012156](https://github.com/user-attachments/assets/7d30a14c-a8f4-4d26-adf6-8b669e6137bb)
+
+![Screenshot 2025-06-12 012228](https://github.com/user-attachments/assets/bb8c4e6f-1955-4ab6-a86e-d475b2fa5d10)
+
+![Screenshot 2025-06-12 012249](https://github.com/user-attachments/assets/52c86520-8cb2-4a1a-acf6-748937b83af7)
+
+![Screenshot 2025-06-12 012336](https://github.com/user-attachments/assets/832374b6-65ff-424c-a498-01a8c357a124)
+
+![Screenshot 2025-06-12 012519](https://github.com/user-attachments/assets/fdd1d3e7-4754-4da4-9443-2a468d72ef78)
+
+![Screenshot 2025-06-12 012610](https://github.com/user-attachments/assets/5869ae4d-1b98-494b-8704-e65a4f2242fd)
+
+![Screenshot 2025-06-12 012700](https://github.com/user-attachments/assets/3e9eaa8e-d6e6-42f2-8720-038dc92b9a2c)
+
+---
+
+## 🧑‍💻 Run Locally
 
 ```bash
-# 1. Clone
+# 1. Clone the repository
 git clone https://github.com/your-user/lucy-ai.git
 cd lucy-ai
 
-# 2. Virtualenv
+# 2. Create virtual environment
 python -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
-# 3. Dependencies
+# 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Environment variables
-echo "GEMINI_API_KEY=YOUR_GOOGLE_KEY" >> .env
-echo "SECRET_KEY=Ultra-Secret-Flask-Key" >> .env
+# 4. Set environment variables
+echo "GEMINI_API_KEY=your_api_key" >> .env
+echo "SECRET_KEY=super-secret" >> .env
 
-# 5. Run
+# 5. Start server
 python app.py
-# Visit http://localhost:5000
-````
+# Visit: http://localhost:5000
+```
 
 ---
 
-## 📂 Project Structure
+## 🗂 Project Structure
 
 ```
 lucy-ai/
-├── app.py               # Flask server
-├── templates/
-│   ├── index.html       # Landing / auth
-│   └── dashboard.html   # Main UI
-├── static/
-│   ├── style1.css
-│   └── script1.js
-├── users.db             # SQLite – auto-created
+├── app.py               # Flask backend
+├── templates/           # HTML views
+│   ├── index.html       # Login/Register
+│   └── dashboard.html   # Main chat UI
+├── static/              # CSS, JS
+├── users.db             # SQLite database
+├── .env                 # Environment secrets
 └── README.md
 ```
 
@@ -109,46 +129,41 @@ lucy-ai/
 
 ## 🤝 Contributing
 
-1. Fork the repo & create a feature branch:
+We welcome contributions! Whether it's a bug fix, feature idea, or doc improvement — every bit counts.
 
-   ```bash
-   git checkout -b feature/amazing-thing
-   ```
-2. Commit your changes with clear messages.
-3. Push and open a Pull Request – CI will run lint & tests.
-4. Feel free to open Issues for bugs or ideas.
+1. Fork the repo
+2. Create a new branch: `git checkout -b feature/amazing-feature`
+3. Commit and push your changes
+4. Open a Pull Request ✅
 
 ---
 
-## 💝 Support Lucy AI
+## 💜 Support This Project By Donating or contributing.
 
-Lucy is totally free to use, but servers & API calls aren’t.
-If you’d like to help keep the project ad-free and open-source:
+Lucy is free & ad-free, but API and server costs add up.  
+You can support the project via:
 
-| Method     | Link / ID             |
-| ---------- | --------------------- |
-| PhonePe    | `yogiguli@ybl`        |
-| Google Pay | `yogesh490807@okaxis` |
-| Paytm      | `9008587582@ptaxis`   |
-| GitHub     | ⭐ Star this repo      |
+| Method      | UPI-ID/Mail-ID                  |
+|-------------|---------------------------------|
+| PhonePe     | `yogiguli@ybl`                  |
+| Google Pay  | `yogesh490807@okaxis`           |
+| Paytm       | `9008587582@ptaxis`             |
+| AirTM       | `personalmail.lucifer@gmail.com`|
+| GitHub      | ⭐ Star the repo                |
 
-Even a single ₹ helps – thank you! 💜
+![GooglePay_QR](https://github.com/user-attachments/assets/0a280e21-ae69-44e8-87de-0983f00b4b50)
+
+Even ₹5 helps. Thank you so much! ☕💜
 
 ---
 
-## 📝 License
+## 📄 License
 
-Released under the MIT License – see `LICENSE` file.
-
-> “Sharing knowledge is the most powerful way to grow.” – Lucy
+Licensed under the [MIT License](LICENSE).  
+Feel free to use and modify with attribution.
 
 ---
 
 <p align="center">
-  Made with ❤️ & caffeine in Bangalore
+  Built with ❤️ By LucifeR.
 </p>
-```
-
-Let me know if you’d like a version with emojis removed or with dark-mode screenshots/logos added.
-# Lucy AI
-An AI assistant To learn Any language and Specifically English communication for free This app is developed using python flask for backend and HTML CSS JavaScript for front end and Sqlite for database
