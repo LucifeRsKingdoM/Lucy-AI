@@ -5,7 +5,7 @@
 <!-- ─────────────────────────────────────────────────────────────── -->
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/LucifeRsKingdoM/Lucy-AI/main/static/media/full-logo.png" width="120" alt="Lucy AI logo">
+  <img src="https://raw.githubusercontent.com/LucifeRsKingdoM/Lucy-AI/main/static/media/mini-logo.png" width="120" alt="Lucy AI logo">
 </p>
 
 <h1 align="center">Lucy AI 🤖💬</h1>
