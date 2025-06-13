@@ -2,11 +2,6 @@
 
 
 // ================================
-// MOBILE CRASH PREVENTION - ADD THIS FIRST!
-// ================================
-
-
-// ================================
 // CRITICAL MOBILE FIXES
 // ================================
 
@@ -428,6 +423,14 @@ class VoiceManager {
         }
     }
 
+    async toggleVoiceMode() {
+        if (voiceModeActive) {
+            this.stopVoiceMode();
+        } else {
+            await this.startVoiceMode();
+        }
+    }
+
     async loadVoices() {
         return new Promise((resolve) => {
             const loadVoices = () => {
@@ -625,188 +628,498 @@ class VoiceManager {
         }
     }
 
-    showVoiceIndicator(text) {
-        if (elements.voiceIndicator) {
-            elements.voiceIndicator.classList.add('active');
-        }
-        if (elements.voiceText) {
-            elements.voiceText.textContent = text;
-        }
-        this.animateVoiceWaves(true);
-    }
+    // ================================
+// ADD THESE MISSING METHODS TO VOICEMANAGER CLASS
+// ================================
 
-    hideVoiceIndicator() {
-        if (elements.voiceIndicator) {
-            elements.voiceIndicator.classList.remove('active');
-        }
-        this.animateVoiceWaves(false);
-    }
-
-    animateVoiceWaves(active) {
+// Add this method inside your VoiceManager class
+animateVoiceWaves(active) {
+    // For normal view
+    if (elements.voiceWaves) {
         elements.voiceWaves.forEach(w => {
             if (w) {
                 w.style.animationPlayState = active ? 'running' : 'paused';
             }
         });
     }
+    
+    // For maximized view
+    if (isChatMaximized) {
+        const maximizedWaves = document.querySelectorAll('.maximized-voice-indicator .wave');
+        maximizedWaves.forEach(w => {
+            if (w) {
+                w.style.animationPlayState = active ? 'running' : 'paused';
+            }
+        });
+    }
+}
 
-    async toggleVoiceMode() {
-        if (voiceModeActive) {
-            this.stopVoiceMode();
-        } else {
-            await this.startVoiceMode();
+// Add this method inside your VoiceManager class
+startListening() {
+    if (!voiceModeActive || isRecording || isSpeaking || isProcessing || this.isDestroyed) {
+        return;
+    }
+    
+    try {
+        if (this.recognition) {
+            this.recognition.start();
         }
+    } catch (error) {
+        logger.error('Failed to start recognition:', error);
+    }
+}
+
+// Add this method inside your VoiceManager class
+stopListening() {
+    if (isRecording && this.recognition) {
+        this.recognition.stop();
+    }
+    isRecording = false;
+}
+
+// Add this method inside your VoiceManager class
+processSpeechResult(text) {
+    text = text.trim();
+    if (!text || this.isDestroyed) return;
+    
+    logger.voice(`User said: "${text}"`);
+    
+    this.hideVoiceIndicator();
+    if (elements.messageInput) {
+        elements.messageInput.value = text;
+    }
+    
+    // Stop listening while processing
+    shouldContinueListening = false;
+    
+    // Send the message
+    sendMessage(text);
+}
+
+// Add this method inside your VoiceManager class
+showInterimResult(text) {
+    if (elements.messageInput && !window.isMobile) {
+        elements.messageInput.value = text;
+    }
+}
+
+// Add this method inside your VoiceManager class
+finishSpeaking() {
+    if (this.isDestroyed) return;
+    isSpeaking = false;
+    this.hideVoiceIndicator();
+    
+    // Only start listening if we're in voice mode and should continue
+    if (voiceModeActive && shouldContinueListening && !isProcessing) {
+        logger.voice('Speech finished, starting to listen for user input...');
+        const timeout = setTimeout(() => {
+            if (voiceModeActive && shouldContinueListening && !isProcessing) {
+                this.startListening();
+            }
+        }, 800);
+        this.timeouts.add(timeout);
+    }
+}
+
+// Add this method inside your VoiceManager class
+cleanup() {
+    this.stopListening();
+    this.speechSynthesis.cancel();
+    
+    // Clear all timeouts
+    this.timeouts.forEach(timeout => clearTimeout(timeout));
+    this.timeouts.clear();
+}
+
+// Add this method inside your VoiceManager class
+cleanupRecognition() {
+    if (this.recognition) {
+        this.recognition.onstart = null;
+        this.recognition.onresult = null;
+        this.recognition.onerror = null;
+        this.recognition.onend = null;
+        this.recognition = null;
+    }
+}
+
+// Add this method inside your VoiceManager class
+destroy() {
+    this.isDestroyed = true;
+    this.cleanup();
+    this.cleanupRecognition();
+    logger.info('VoiceManager destroyed');
+}
+
+// Add this method inside your VoiceManager class
+async loadVoices() {
+    return new Promise((resolve) => {
+        const loadVoices = () => {
+            this.voices = this.speechSynthesis.getVoices();
+            if (this.voices.length) {
+                this.selectVoice();
+                logger.info(`Loaded ${this.voices.length} voices`);
+                resolve();
+            }
+        };
+        loadVoices();
+        this.speechSynthesis.onvoiceschanged = loadVoices;
+        
+        // Shorter timeout for mobile
+        const timeout = setTimeout(() => resolve(), window.isMobile ? 500 : 1000);
+        this.timeouts.add(timeout);
+    });
+}
+
+// Add this method inside your VoiceManager class
+selectVoice(lang = 'en') {
+    this.currentVoice = this.voices.find(v => 
+        v.lang.startsWith(lang) && /female/i.test(v.name)
+    ) || this.voices.find(v => v.lang.startsWith(lang)) || this.voices[0];
+    
+    logger.info('Selected voice:', this.currentVoice?.name || 'default');
+}
+
+// Add this method inside your VoiceManager class
+setupSpeechRecognition() {
+    // Clean up existing recognition
+    this.cleanupRecognition();
+
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+        logger.error('Speech recognition not supported');
+        return;
     }
 
-    async startVoiceMode() {
-        try {
-            logger.voice('🔊 Voice mode ON');
-            isVoiceMode = true;
-            voiceModeActive = true;
-            shouldContinueListening = false; // Important: Don't start listening yet!
-            this.retryCount = 0;
+    this.recognition = new SR();
+    this.recognition.lang = currentLanguage;
+    this.recognition.continuous = false;
+    this.recognition.interimResults = window.isMobile ? false : true;
+    this.recognition.maxAlternatives = 1;
 
-            // Stop any existing activities
-            this.stopListening();
-            this.speechSynthesis.cancel();
+    // Event handlers
+    this.recognition.onstart = () => {
+        if (this.isDestroyed) return;
+        isRecording = true;
+        this.lastRecordingStart = Date.now();
+        logger.voice('🎙️ Listening...');
+        this.showVoiceIndicator('Listening...');
+    };
 
-            // Update UI
-            if (elements.switchModeBtn) {
-                const icon = elements.switchModeBtn.querySelector('i');
-                const span = elements.switchModeBtn.querySelector('span');
-                if (icon) icon.className = 'fas fa-keyboard';
-                if (span) span.textContent = 'Chat Mode';
-                elements.switchModeBtn.classList.add('active');
-            }
-            
-            toggleUIElements(true);
-            showToast('success', 'Voice Mode Active', 'Starting conversation...');
-
-            // STEP 1: Send automatic greeting message to AI
-            const username = document.querySelector('.user-name')?.textContent?.trim() || 
-                            document.querySelector('.highlight')?.textContent?.trim() || 
-                            'friend';
-            
-            const automaticMessage = `Hi Lucy, I'm ${username}. Let's practice my English conversation today.`;
-            
-            logger.voice(`Sending automatic greeting: "${automaticMessage}"`);
-            
-            // Set processing state
-            isProcessing = true;
-            
-            // Display the automatic user message
-            displayMessage(automaticMessage, 'user');
-            
-            // Update stats
-            messageCount++;
-            wordCount += automaticMessage.split(' ').length;
-            updateLiveStats();
-            
-            // Show typing indicator
-            showTypingIndicator();
-            
-            // STEP 2: Send to AI and get response
-            try {
-                const response = await fetch('/process', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ 
-                        text: automaticMessage,
-                        language: currentLanguage,
-                        timestamp: new Date().toISOString()
-                    }),
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                const aiResponse = data.response || "Hello! I'm Lucy, ready to help you practice English!";
-                
-                // Hide typing indicator
-                hideTypingIndicator();
-                
-                // STEP 3: Display AI response
-                displayMessage(aiResponse, 'ai');
-                
-                logger.voice(`AI responded: "${aiResponse.substring(0, 50)}..."`);
-                
-                // STEP 4: Speak the AI response
-                logger.voice('Speaking AI response...');
-                await this.speak(aiResponse);
-                
-                logger.voice('AI finished speaking, now ready for user input');
-                
-                // STEP 5: NOW start listening for user input
-                isProcessing = false;
-                shouldContinueListening = true;
-                
-                // Small delay before starting to listen
-                const timeout = setTimeout(() => {
-                    if (voiceModeActive && shouldContinueListening) {
-                        this.startListening();
-                        logger.voice('👂 Now listening for your response...');
-                    }
-                }, 1000);
-                this.timeouts.add(timeout);
-                
-            } catch (error) {
-                logger.error('Error in voice mode startup:', error);
-                hideTypingIndicator();
-                
-                // Fallback AI message
-                const fallbackMessage = "Hello! I'm Lucy, your English practice companion. How are you today?";
-                displayMessage(fallbackMessage, 'ai');
-                
-                // Speak fallback and start listening
-                await this.speak(fallbackMessage);
-                isProcessing = false;
-                shouldContinueListening = true;
-                
-                const timeout = setTimeout(() => {
-                    if (voiceModeActive && shouldContinueListening) {
-                        this.startListening();
-                    }
-                }, 1000);
-                this.timeouts.add(timeout);
-            }
-
-        } catch (err) {
-            logger.error('Voice mode start failed', err);
-            showToast('error', 'Voice Error', 'Could not start voice mode');
-            this.stopVoiceMode();
-            isProcessing = false;
+    this.recognition.onresult = (e) => {
+        if (this.isDestroyed) return;
+        const i = e.resultIndex;
+        const transcript = e.results[i][0].transcript;
+        if (e.results[i].isFinal) {
+            this.processSpeechResult(transcript);
+        } else if (!window.isMobile) {
+            this.showInterimResult(transcript);
         }
-    }
+    };
 
-    stopVoiceMode() {
-        logger.voice('🔇 Voice mode OFF');
-        this.cleanup();
-
-        isVoiceMode = false;
-        voiceModeActive = false;
-        shouldContinueListening = false;
+    this.recognition.onerror = (e) => {
+        if (this.isDestroyed) return;
         isRecording = false;
-        isSpeaking = false;
-        isProcessing = false;
+        logger.error('Speech recognition error:', e.error);
+        
+        if (e.error === 'not-allowed') {
+            showToast('error', 'Permission Denied', 'Microphone access needed');
+            this.stopVoiceMode();
+        } else if (e.error === 'network') {
+            this.retryCount++;
+            if (this.retryCount < this.maxRetries && voiceModeActive) {
+                const timeout = setTimeout(() => this.startListening(), 2000);
+                this.timeouts.add(timeout);
+            } else {
+                this.stopVoiceMode();
+                showToast('error', 'Network Error', 'Voice recognition failed');
+            }
+        } else if (voiceModeActive && shouldContinueListening) {
+            const timeout = setTimeout(() => this.startListening(), 1500);
+            this.timeouts.add(timeout);
+        }
+    };
 
-        // Update UI
+    this.recognition.onend = () => {
+        if (this.isDestroyed) return;
+        isRecording = false;
+        if (voiceModeActive && shouldContinueListening && !isSpeaking && !isProcessing) {
+            const timeout = setTimeout(() => this.startListening(), 500);
+            this.timeouts.add(timeout);
+        }
+    };
+
+    logger.success('Speech recognition ready');
+}
+
+// Add this method inside your VoiceManager class
+async speak(text) {
+    if (!text || isSpeaking || this.isDestroyed) return;
+    
+    return new Promise(resolve => {
+        this.speechSynthesis.cancel();
+
+        const clean = text.replace(/\*/g, '')
+                          .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '')
+                          .replace(/\n/g, ' ')
+                          .trim();
+        
+        if (!clean) return resolve();
+
+        const utterance = new SpeechSynthesisUtterance(clean);
+        utterance.voice = this.currentVoice;
+        utterance.rate = window.isMobile ? 1.0 : 0.9;
+        utterance.pitch = 1.1;
+
+        utterance.onstart = () => {
+            if (this.isDestroyed) return;
+            isSpeaking = true;
+            this.lastSpeechStart = Date.now();
+            this.showVoiceIndicator('Speaking...');
+        };
+
+        utterance.onend = () => {
+            this.finishSpeaking();
+            resolve();
+        };
+
+        utterance.onerror = () => {
+            this.finishSpeaking();
+            resolve();
+        };
+
+        this.speechSynthesis.speak(utterance);
+    });
+}
+
+// ================================
+// UPDATED VOICE MANAGER FOR MAXIMIZED VIEW
+// ================================
+
+// Update the showVoiceIndicator method in VoiceManager class
+showVoiceIndicator(text) {
+    if (isChatMaximized) {
+        // Show indicator in maximized view
+        let maximizedIndicator = document.getElementById('maximizedVoiceIndicator');
+        if (!maximizedIndicator) {
+            // Create maximized voice indicator if it doesn't exist
+            maximizedIndicator = document.createElement('div');
+            maximizedIndicator.id = 'maximizedVoiceIndicator';
+            maximizedIndicator.className = 'maximized-voice-indicator';
+            maximizedIndicator.innerHTML = `
+                <div class="voice-waves">
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                </div>
+                <span class="maximized-voice-text">${text}</span>
+            `;
+            document.body.appendChild(maximizedIndicator);
+        }
+        maximizedIndicator.classList.add('active');
+        maximizedIndicator.querySelector('.maximized-voice-text').textContent = text;
+        
+        // Update FAB button state
+        if (maximizedChatElements.fabBtn) {
+            maximizedChatElements.fabBtn.classList.add('active');
+        }
+    } else {
+        // Normal view indicator
+        if (elements.voiceIndicator) {
+            elements.voiceIndicator.classList.add('active');
+        }
+        if (elements.voiceText) {
+            elements.voiceText.textContent = text;
+        }
+    }
+    
+    this.animateVoiceWaves(true);
+}
+
+hideVoiceIndicator() {
+    if (isChatMaximized) {
+        // Hide maximized indicator
+        const maximizedIndicator = document.getElementById('maximizedVoiceIndicator');
+        if (maximizedIndicator) {
+            maximizedIndicator.classList.remove('active');
+        }
+        
+        // Update FAB button state
+        if (maximizedChatElements.fabBtn) {
+            maximizedChatElements.fabBtn.classList.remove('active');
+        }
+    } else {
+        // Normal view indicator
+        if (elements.voiceIndicator) {
+            elements.voiceIndicator.classList.remove('active');
+        }
+    }
+    
+    this.animateVoiceWaves(false);
+}
+
+// Update the voice mode toggle buttons
+async startVoiceMode() {
+    try {
+        logger.voice('🔊 Voice mode ON');
+        isVoiceMode = true;
+        voiceModeActive = true;
+        shouldContinueListening = false;
+        this.retryCount = 0;
+
+        this.stopListening();
+        this.speechSynthesis.cancel();
+
+        // Update UI for both normal and maximized views
         if (elements.switchModeBtn) {
             const icon = elements.switchModeBtn.querySelector('i');
             const span = elements.switchModeBtn.querySelector('span');
-            if (icon) icon.className = 'fas fa-microphone';
-            if (span) span.textContent = 'Voice Mode';
-            elements.switchModeBtn.classList.remove('active');
+            if (icon) icon.className = 'fas fa-keyboard';
+            if (span) span.textContent = 'Chat Mode';
+            elements.switchModeBtn.classList.add('active');
+        }
+        
+        // Update maximized FAB button
+        if (maximizedChatElements.fabBtn) {
+            maximizedChatElements.fabBtn.classList.add('active');
+            maximizedChatElements.fabBtn.querySelector('i').className = 'fas fa-keyboard';
+            maximizedChatElements.fabBtn.title = 'Exit Voice Mode';
+        }
+        
+        // Update regular FAB button
+        if (elements.fabBtn) {
+            elements.fabBtn.classList.add('active');
+            elements.fabBtn.querySelector('i').className = 'fas fa-keyboard';
+        }
+        
+        toggleUIElements(true);
+        showToast('success', 'Voice Mode Active', 'Starting conversation...');
+
+        // Send automatic greeting
+        const username = document.querySelector('.user-name')?.textContent?.trim() || 
+                        document.querySelector('.highlight')?.textContent?.trim() || 
+                        'friend';
+        
+        const automaticMessage = `Hi Lucy, I'm ${username}. Let's practice my English conversation today.`;
+        
+        logger.voice(`Sending automatic greeting: "${automaticMessage}"`);
+        
+        isProcessing = true;
+        
+        // Display in appropriate view
+        displayMessage(automaticMessage, 'user');
+        
+        messageCount++;
+        wordCount += automaticMessage.split(' ').length;
+        updateLiveStats();
+        
+        showTypingIndicator();
+        
+        try {
+            const response = await fetch('/process', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    text: automaticMessage,
+                    language: currentLanguage,
+                    timestamp: new Date().toISOString()
+                }),
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            const aiResponse = data.response || "Hello! I'm Lucy, ready to help you practice English!";
+            
+            hideTypingIndicator();
+            displayMessage(aiResponse, 'ai');
+            
+            logger.voice(`AI responded: "${aiResponse.substring(0, 50)}..."`);
+            
+            logger.voice('Speaking AI response...');
+            await this.speak(aiResponse);
+            
+            logger.voice('AI finished speaking, now ready for user input');
+            
+            isProcessing = false;
+            shouldContinueListening = true;
+            
+            const timeout = setTimeout(() => {
+                if (voiceModeActive && shouldContinueListening) {
+                    this.startListening();
+                    logger.voice('👂 Now listening for your response...');
+                }
+            }, 1000);
+            this.timeouts.add(timeout);
+            
+        } catch (error) {
+            logger.error('Error in voice mode startup:', error);
+            hideTypingIndicator();
+            
+            const fallbackMessage = "Hello! I'm Lucy, your English practice companion. How are you today?";
+            displayMessage(fallbackMessage, 'ai');
+            
+            await this.speak(fallbackMessage);
+            isProcessing = false;
+            shouldContinueListening = true;
+            
+            const timeout = setTimeout(() => {
+                if (voiceModeActive && shouldContinueListening) {
+                    this.startListening();
+                }
+            }, 1000);
+            this.timeouts.add(timeout);
         }
 
-        toggleUIElements(false);
-        this.hideVoiceIndicator();
-        showToast('success', 'Chat Mode Active', 'Voice mode disabled');
+    } catch (err) {
+        logger.error('Voice mode start failed', err);
+        showToast('error', 'Voice Error', 'Could not start voice mode');
+        this.stopVoiceMode();
+        isProcessing = false;
     }
+}
+
+stopVoiceMode() {
+    logger.voice('🔇 Voice mode OFF');
+    this.cleanup();
+
+    isVoiceMode = false;
+    voiceModeActive = false;
+    shouldContinueListening = false;
+    isRecording = false;
+    isSpeaking = false;
+    isProcessing = false;
+
+    // Update UI for both views
+    if (elements.switchModeBtn) {
+        const icon = elements.switchModeBtn.querySelector('i');
+        const span = elements.switchModeBtn.querySelector('span');
+        if (icon) icon.className = 'fas fa-microphone';
+        if (span) span.textContent = 'Voice Mode';
+        elements.switchModeBtn.classList.remove('active');
+    }
+    
+    // Update maximized FAB button
+    if (maximizedChatElements.fabBtn) {
+        maximizedChatElements.fabBtn.classList.remove('active');
+        maximizedChatElements.fabBtn.querySelector('i').className = 'fas fa-microphone';
+        maximizedChatElements.fabBtn.title = 'Voice Mode';
+    }
+    
+    // Update regular FAB button
+    if (elements.fabBtn) {
+        elements.fabBtn.classList.remove('active');
+        elements.fabBtn.querySelector('i').className = 'fas fa-microphone';
+    }
+
+    toggleUIElements(false);
+    this.hideVoiceIndicator();
+    showToast('success', 'Chat Mode Active', 'Voice mode disabled');
+}
 
     cleanup() {
         this.stopListening();
@@ -834,6 +1147,74 @@ class VoiceManager {
         logger.info('VoiceManager destroyed');
     }
 }
+
+
+// ================================
+// TYPING INDICATOR FOR MAXIMIZED VIEW
+// ================================
+
+function showTypingIndicator() {
+    // Show in normal view
+    if (!isChatMaximized && elements.chatBox) {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message ai-message typing-indicator';
+        typingDiv.id = 'typing-indicator';
+        typingDiv.innerHTML = `
+            <div class="message-avatar">
+                <img src="https://ui-avatars.com/api/?name=Lucy&background=ec4899&color=fff&size=32" alt="Lucy">
+            </div>
+            <div class="message-content">
+                <div class="message-bubble">
+                    <div class="typing-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            </div>
+        `;
+        elements.chatBox.appendChild(typingDiv);
+        elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
+    }
+    
+    // Show in maximized view
+    if (isChatMaximized && maximizedChatElements.messages) {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message ai-message typing-indicator';
+        typingDiv.id = 'maximized-typing-indicator';
+        typingDiv.innerHTML = `
+            <div class="message-avatar">
+                <img src="https://ui-avatars.com/api/?name=Lucy&background=ec4899&color=fff&size=32" alt="Lucy">
+            </div>
+            <div class="message-content">
+                <div class="message-bubble">
+                    <div class="typing-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            </div>
+        `;
+        maximizedChatElements.messages.appendChild(typingDiv);
+        maximizedChatElements.messages.scrollTop = maximizedChatElements.messages.scrollHeight;
+    }
+    
+    logger.info('Typing indicator shown');
+}
+
+function hideTypingIndicator() {
+    // Hide from normal view
+    const typingIndicator = document.getElementById('typing-indicator');
+    if (typingIndicator) {
+        typingIndicator.remove();
+    }
+    
+    // Hide from maximized view
+    const maximizedTypingIndicator = document.getElementById('maximized-typing-indicator');
+    if (maximizedTypingIndicator) {
+        maximizedTypingIndicator.remove();
+    }
+    
+    logger.info('Typing indicator hidden');
+}
+
 
 // ================================
 // OPTIMIZED SEND MESSAGE FUNCTION
@@ -1043,7 +1424,7 @@ function logVoiceModeState(action) {
 
 
 // ================================
-// CHAT MAXIMIZE/MINIMIZE FUNCTIONALITY
+// UPDATED CHAT MAXIMIZE FUNCTIONALITY
 // ================================
 
 let isChatMaximized = false;
@@ -1061,8 +1442,10 @@ function initializeChatMaximize() {
         suggestions: document.getElementById('maximizedChatSuggestions'),
         maximizeBtn: document.getElementById('maximizeBtn'),
         minimizeBtn: document.getElementById('minimizeBtn'),
-        closeBtn: document.getElementById('closeMaximizedBtn')
+        closeBtn: document.getElementById('closeMaximizedBtn'),
+        fabBtn: document.getElementById('maximizedFabBtn')
     };
+
     
     // Maximize button click
     if (maximizedChatElements.maximizeBtn) {
@@ -1098,6 +1481,10 @@ function initializeChatMaximize() {
                 }
             }
         });
+        
+        // Fix input accessibility
+        maximizedChatElements.input.style.pointerEvents = 'auto';
+        maximizedChatElements.input.style.touchAction = 'manipulation';
     }
     
     // Maximized suggestion chips
@@ -1109,6 +1496,17 @@ function initializeChatMaximize() {
                     maximizedChatElements.input.value = text;
                 }
                 sendMessage(text);
+            }
+        });
+    }
+    
+    // Maximized FAB button for voice mode
+    if (maximizedChatElements.fabBtn) {
+        maximizedChatElements.fabBtn.addEventListener('click', () => {
+            if (speechManager) {
+                speechManager.toggleVoiceMode();
+            } else {
+                showToast('error', 'Voice Error', 'Voice system not ready');
             }
         });
     }
@@ -1156,6 +1554,9 @@ function maximizeChat() {
     
     // Copy messages to maximized view
     copyMessagesToMaximized();
+    
+    // Ensure inputs are accessible
+    fixMaximizedInputs();
     
     // Focus on maximized input
     setTimeout(() => {
@@ -1207,6 +1608,25 @@ function minimizeChat() {
     logger.success('Chat minimized successfully');
 }
 
+function fixMaximizedInputs() {
+    // Ensure all interactive elements in maximized view are accessible
+    const elementsToFix = [
+        maximizedChatElements.input,
+        maximizedChatElements.sendBtn,
+        maximizedChatElements.fabBtn,
+        ...document.querySelectorAll('.chat-maximized-suggestions .suggestion-chip')
+    ];
+    
+    elementsToFix.forEach(element => {
+        if (element) {
+            element.style.pointerEvents = 'auto';
+            element.style.touchAction = 'manipulation';
+            element.removeAttribute('disabled');
+            element.style.opacity = '1';
+        }
+    });
+}
+
 function copyMessagesToMaximized() {
     if (!maximizedChatElements.messages || !elements.chatBox) return;
     
@@ -1238,7 +1658,7 @@ window.displayMessage = function(text, sender) {
     }
 };
 
-// Clear maximized input after sending message
+// Update sendMessage to clear maximized input
 const originalSendMessage = sendMessage;
 window.sendMessage = async function(text) {
     await originalSendMessage(text);
@@ -1247,8 +1667,12 @@ window.sendMessage = async function(text) {
     if (isChatMaximized && maximizedChatElements.input) {
         maximizedChatElements.input.value = '';
     }
+    
+    // Clear original input
+    if (elements.messageInput) {
+        elements.messageInput.value = '';
+    }
 };
-
 
 // ================================
 // MEMORY MANAGEMENT FUNCTIONS
@@ -2075,50 +2499,63 @@ function initializeInputHandling() {
         });
     }
     
-    // Voice mode toggle
+    // ================================
+// ADD SAFETY CHECKS TO BUTTON CLICKS
+// ================================
+
+    // Voice mode toggle button
     if (elements.switchModeBtn) {
         elements.switchModeBtn.addEventListener('click', () => {
-            if (speechManager) {
+            console.log('Voice button clicked, speechManager:', speechManager);
+            console.log('speechManager methods:', speechManager ? Object.getOwnPropertyNames(Object.getPrototypeOf(speechManager)) : 'No speechManager');
+            
+            if (speechManager && typeof speechManager.toggleVoiceMode === 'function') {
                 speechManager.toggleVoiceMode();
             } else {
-                logger.error('Speech manager not initialized');
-                showToast('error', 'Voice Error', 'Voice system not ready');
+                logger.error('Speech manager not ready or toggleVoiceMode missing');
+                console.error('speechManager:', speechManager);
+                showToast('error', 'Voice Error', 'Voice system not ready - please refresh page');
             }
         });
     }
-    
+
     // FAB button
     if (elements.fabBtn) {
         elements.fabBtn.addEventListener('click', () => {
-            if (speechManager) {
-                speechManager.toggleVoiceMode();
-            }
-        });
-    }
-    
-    logger.success('Input handling initialized');
-}
-
-// ================================
-// LOGOUT FUNCTIONALITY
-// ================================
-
-function initializeLogout() {
-    logger.info('Initializing logout functionality...');
-    
-    if (elements.logoutBtn) {
-        elements.logoutBtn.addEventListener('click', async () => {
-            if (voiceModeActive) {
-                logger.warn('Logout blocked - voice mode active. Please exit voice mode first.');
-                showToast('warning', 'Exit Voice Mode', 'Please exit voice mode before logging out');
-                return;
-            }
+            console.log('FAB clicked, speechManager:', speechManager);
             
-            if (confirm('Are you sure you want to logout?')) {
-                await handleLogout();
+            if (speechManager && typeof speechManager.toggleVoiceMode === 'function') {
+                speechManager.toggleVoiceMode();
+            } else {
+                logger.error('Speech manager not ready or toggleVoiceMode missing');
+                showToast('error', 'Voice Error', 'Voice system not ready - please refresh page');
             }
         });
     }
+        
+        logger.success('Input handling initialized');
+    }
+
+    // ================================
+    // LOGOUT FUNCTIONALITY
+    // ================================
+
+    function initializeLogout() {
+        logger.info('Initializing logout functionality...');
+        
+        if (elements.logoutBtn) {
+            elements.logoutBtn.addEventListener('click', async () => {
+                if (voiceModeActive) {
+                    logger.warn('Logout blocked - voice mode active. Please exit voice mode first.');
+                    showToast('warning', 'Exit Voice Mode', 'Please exit voice mode before logging out');
+                    return;
+                }
+                
+                if (confirm('Are you sure you want to logout?')) {
+                    await handleLogout();
+                }
+            });
+        }
     
     logger.success('Logout functionality initialized');
 }
@@ -2324,6 +2761,57 @@ function hideLoadingOverlay() {
         elements.loadingOverlay.style.display = 'none';
         logger.info('Loading overlay hidden');
     }
+}
+
+
+// ================================
+// UPDATED UI TOGGLE FOR BOTH VIEWS
+// ================================
+
+function toggleUIElements(disable = false) {
+    const elementsToToggle = [
+        ...document.querySelectorAll('.menu-item'),
+        ...document.querySelectorAll('.mobile-nav-item'),
+        document.getElementById('donateBtn'),
+        document.getElementById('notificationBtn'),
+        document.getElementById('userProfileBtn'),
+        document.getElementById('clearChatBtn'),
+        ...document.querySelectorAll('.suggestion-chip'),
+        ...document.querySelectorAll('.chat-maximized-suggestions .suggestion-chip')
+    ];
+    
+    elementsToToggle.forEach(element => {
+        if (element) {
+            if (disable) {
+                element.style.pointerEvents = 'none';
+                element.style.opacity = '0.5';
+                element.setAttribute('disabled', 'true');
+            } else {
+                element.style.pointerEvents = 'auto';
+                element.style.opacity = '1';
+                element.removeAttribute('disabled');
+            }
+        }
+    });
+    
+    // ALWAYS keep inputs and send buttons accessible
+    const alwaysAccessible = [
+        document.getElementById('messageInput'),
+        document.getElementById('sendMessageBtn'),
+        document.getElementById('maximizedMessageInput'),
+        document.getElementById('maximizedSendBtn'),
+        document.getElementById('fabBtn'),
+        document.getElementById('maximizedFabBtn')
+    ];
+    
+    alwaysAccessible.forEach(element => {
+        if (element) {
+            element.style.pointerEvents = 'auto';
+            element.style.opacity = '1';
+            element.removeAttribute('disabled');
+            element.style.touchAction = 'manipulation';
+        }
+    });
 }
 
 // ================================
@@ -3209,3 +3697,22 @@ if (window.isMobile) {
 
 logger.success('🎉 All optimizations and safety nets in place!');
 
+// ================================
+// TEMPORARY DEBUG CODE
+// ================================
+
+// Check speechManager after page loads
+setTimeout(() => {
+    console.log('=== VOICE MODE DEBUG ===');
+    console.log('speechManager exists:', !!speechManager);
+    console.log('speechManager:', speechManager);
+    
+    if (speechManager) {
+        console.log('speechManager methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(speechManager)));
+        console.log('toggleVoiceMode exists:', typeof speechManager.toggleVoiceMode);
+        console.log('startVoiceMode exists:', typeof speechManager.startVoiceMode);
+        console.log('stopVoiceMode exists:', typeof speechManager.stopVoiceMode);
+    }
+    
+    console.log('=== END DEBUG ===');
+}, 3000);

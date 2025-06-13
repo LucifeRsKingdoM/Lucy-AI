@@ -755,11 +755,20 @@
             </div>
 
             <div class="chat-maximized-input-container">
-                <div class="chat-maximized-suggestions" id="maximizedChatSuggestions">
-                    <button class="suggestion-chip" data-text="How do I improve my pronunciation?">Pronunciation?</button>
-                    <button class="suggestion-chip" data-text="Let's practice conversation">Practice</button>
-                    <button class="suggestion-chip" data-text="Teach me new words">New Words</button>
-                    <button class="suggestion-chip" data-text="Help me with grammar">Grammar</button>
+                <div class="chat-maximized-suggestions-container">
+                    <div class="chat-maximized-suggestions" id="maximizedChatSuggestions">
+                        <button class="suggestion-chip" data-text="How do I improve my pronunciation?">Pronunciation?</button>
+                        <button class="suggestion-chip" data-text="Let's practice conversation">Practice</button>
+                        <button class="suggestion-chip" data-text="Teach me new words">New Words</button>
+                        <button class="suggestion-chip" data-text="Help me with grammar">Grammar</button>
+                    </div>
+                    
+                    <!-- Voice FAB Button for Maximized View -->
+                    <div class="maximized-fab-container">
+                        <button class="maximized-fab" id="maximizedFabBtn" title="Voice Mode">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="chat-maximized-input">
