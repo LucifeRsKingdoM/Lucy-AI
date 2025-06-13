@@ -5,6 +5,141 @@
 // MOBILE CRASH PREVENTION - ADD THIS FIRST!
 // ================================
 
+
+// ================================
+// CRITICAL MOBILE FIXES
+// ================================
+
+// Fix toast dismiss functionality
+function fixToastDismiss() {
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('.toast-close')) {
+            const toast = e.target.closest('.toast');
+            if (toast) {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 300);
+            }
+        }
+    });
+    
+    // Auto-dismiss error toasts after 5 seconds
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.classList && node.classList.contains('toast')) {
+                    setTimeout(() => {
+                        node.classList.remove('show');
+                        setTimeout(() => {
+                            node.style.display = 'none';
+                        }, 300);
+                    }, 5000);
+                }
+            });
+        });
+    });
+    
+    observer.observe(document.body, { childList: true, subtree: true });
+}
+
+// Fix mobile input issues
+function fixMobileInputs() {
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendMessageBtn');
+    
+    if (messageInput) {
+        // Remove any blocking attributes
+        messageInput.removeAttribute('disabled');
+        messageInput.removeAttribute('readonly');
+        messageInput.style.pointerEvents = 'auto';
+        messageInput.style.touchAction = 'manipulation';
+        
+        // Add touch event handlers
+        messageInput.addEventListener('touchstart', (e) => {
+            e.stopPropagation();
+        }, { passive: true });
+        
+        messageInput.addEventListener('touchend', (e) => {
+            e.stopPropagation();
+            messageInput.focus();
+        }, { passive: true });
+        
+        // Fix focus issues
+        messageInput.addEventListener('focus', () => {
+            setTimeout(() => {
+                messageInput.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest'
+                });
+            }, 300);
+        });
+    }
+    
+    if (sendBtn) {
+        sendBtn.style.pointerEvents = 'auto';
+        sendBtn.style.touchAction = 'manipulation';
+    }
+}
+
+// Override toggleUIElements to not disable inputs
+function toggleUIElements(disable = false) {
+    const elementsToToggle = [
+        ...document.querySelectorAll('.menu-item'),
+        ...document.querySelectorAll('.mobile-nav-item'),
+        document.getElementById('donateBtn'),
+        document.getElementById('notificationBtn'),
+        document.getElementById('userProfileBtn'),
+        document.getElementById('clearChatBtn'),
+        ...document.querySelectorAll('.suggestion-chip')
+    ];
+    
+    elementsToToggle.forEach(element => {
+        if (element) {
+            if (disable) {
+                element.style.pointerEvents = 'none';
+                element.style.opacity = '0.5';
+                element.setAttribute('disabled', 'true');
+            } else {
+                element.style.pointerEvents = 'auto';
+                element.style.opacity = '1';
+                element.removeAttribute('disabled');
+            }
+        }
+    });
+    
+    // NEVER disable input and send button
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendMessageBtn');
+    
+    if (messageInput) {
+        messageInput.style.pointerEvents = 'auto';
+        messageInput.style.opacity = '1';
+        messageInput.removeAttribute('disabled');
+    }
+    
+    if (sendBtn) {
+        sendBtn.style.pointerEvents = 'auto';
+        sendBtn.style.opacity = '1';
+        sendBtn.removeAttribute('disabled');
+    }
+}
+
+// Initialize fixes when DOM loads
+document.addEventListener('DOMContentLoaded', () => {
+    fixToastDismiss();
+    fixMobileInputs();
+    
+    // Run fixes every 2 seconds as backup
+    setInterval(() => {
+        if (window.isMobile) {
+            fixMobileInputs();
+        }
+    }, 2000);
+});
+
+// Rest of your existing code goes here...
+
 // Detect mobile and prevent crashes
 window.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 window.isLowEndDevice = window.isMobile && (navigator.hardwareConcurrency <= 2 || navigator.deviceMemory <= 2);
@@ -3073,3 +3208,4 @@ if (window.isMobile) {
 }
 
 logger.success('🎉 All optimizations and safety nets in place!');
+

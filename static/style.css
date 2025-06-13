@@ -3049,3 +3049,196 @@ h6 {
     border-radius: 50%;
     animation: pulse 2s infinite;
 }
+
+
+
+
+
+
+/* ================================
+   CRITICAL MOBILE FIXES
+   ================================ */
+
+/* Fix CSS file loading */
+@media (max-width: 768px) {
+    /* Force input accessibility */
+    .chat-input-container,
+    .chat-input,
+    #messageInput,
+    .send-btn {
+        pointer-events: auto !important;
+        touch-action: manipulation !important;
+        -webkit-user-select: text !important;
+        user-select: text !important;
+        position: relative !important;
+        z-index: 1000 !important;
+    }
+    
+    /* Fix input field specifically */
+    #messageInput {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        color: white !important;
+        font-size: 16px !important; /* Prevent iOS zoom */
+        padding: 12px 16px !important;
+        border-radius: 12px !important;
+        width: 100% !important;
+        outline: none !important;
+    }
+    
+    #messageInput:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
+    }
+    
+    /* Fix send button */
+    .send-btn {
+        background: var(--primary) !important;
+        border: none !important;
+        border-radius: 50% !important;
+        width: 48px !important;
+        height: 48px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: white !important;
+        font-size: 18px !important;
+        cursor: pointer !important;
+        flex-shrink: 0 !important;
+    }
+    
+    /* Fix chat input container */
+    .chat-input-container {
+        background: rgba(17, 24, 39, 0.95) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        padding: 16px !important;
+        position: sticky !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+    }
+    
+    .chat-input {
+        display: flex !important;
+        gap: 12px !important;
+        align-items: center !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 25px !important;
+        padding: 8px 16px !important;
+    }
+    
+    /* Fix suggestions */
+    .chat-suggestions {
+        display: flex !important;
+        gap: 8px !important;
+        margin-bottom: 12px !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding-bottom: 8px !important;
+    }
+    
+    .suggestion-chip {
+        background: rgba(99, 102, 241, 0.2) !important;
+        border: 1px solid rgba(99, 102, 241, 0.3) !important;
+        color: var(--primary) !important;
+        padding: 8px 16px !important;
+        border-radius: 20px !important;
+        font-size: 14px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        cursor: pointer !important;
+        touch-action: manipulation !important;
+    }
+    
+    .suggestion-chip:active {
+        background: rgba(99, 102, 241, 0.4) !important;
+        transform: scale(0.95) !important;
+    }
+}
+
+/* Fix error toasts */
+.toast {
+    position: fixed !important;
+    bottom: 80px !important;
+    left: 16px !important;
+    right: 16px !important;
+    background: rgba(239, 68, 68, 0.95) !important;
+    color: white !important;
+    padding: 16px !important;
+    border-radius: 12px !important;
+    z-index: 9999 !important;
+    display: none !important;
+    align-items: center !important;
+    gap: 12px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+.toast.show {
+    display: flex !important;
+    animation: slideUpToast 0.3s ease !important;
+}
+
+.toast-close {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: none !important;
+    color: white !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    font-size: 16px !important;
+}
+
+@keyframes slideUpToast {
+    from {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Emergency mobile input fix */
+@media (max-width: 480px) {
+    .dashboard-container {
+        height: 100vh !important;
+        overflow: hidden !important;
+    }
+    
+    .main-content {
+        height: calc(100vh - 60px - 60px) !important; /* navbar + mobile nav */
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .chat-container {
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .chat-messages {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 16px !important;
+    }
+    
+    /* Ensure input is always accessible */
+    .chat-input-container {
+        position: sticky !important;
+        bottom: 0 !important;
+        background: rgba(17, 24, 39, 0.98) !important;
+        border-top: 2px solid rgba(255, 255, 255, 0.1) !important;
+        padding: 16px !important;
+        z-index: 1000 !important;
+    }
+}
