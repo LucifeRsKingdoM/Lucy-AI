@@ -1,4 +1,3 @@
-Note: The application is fully functional and working super fine in desktop views but in the mobile views there are some issues with the different screens and it is also under development Please Understand.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/LucifeRsKingdoM/Lucy-AI/main/static/media/mini-logo.png" width="120" alt="Lucy AI logo">
@@ -20,6 +19,8 @@ Note: The application is fully functional and working super fine in desktop view
 </p>
 
 ---
+
+Note: The application is fully functional and working super fine in desktop views but in the mobile views there are some issues with the different screens and it is also under development Please Understand.
 
 ## 🧠 About Lucy AI
 
