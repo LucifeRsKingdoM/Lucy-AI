@@ -1,0 +1,850 @@
+/* ================================
+   LUCY AI - MOBILE RESPONSIVE
+   All mobile-specific styles
+   ================================ */
+
+/* Tablets (Portrait & Landscape) */
+@media (min-width: 768px) {
+    :root {
+        --navbar-height: 70px;
+    }
+
+    .dashboard-container {
+        padding-left: var(--sidebar-width);
+    }
+
+    .left-sidebar {
+        left: 0;
+        z-index: 997;
+    }
+
+    .main-content {
+        height: calc(100vh - var(--navbar-height));
+    }
+    
+    .mobile-bottom-nav {
+        display: none;
+    }
+
+    .brand-text, .user-name {
+        display: inline;
+    }
+    
+    .nav-center {
+        display: flex;
+    }
+
+    #donateBtn {
+        display: flex;
+    }
+
+    .welcome-section {
+        margin: 1.5rem;
+        padding: 1.5rem 2rem;
+    }
+
+    .lessons-grid, .achievements-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .progress-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .toast {
+        bottom: 2rem;
+        left: auto;
+        right: 2rem;
+        width: 350px;
+    }
+}
+
+/* Desktops */
+@media (min-width: 1024px) {
+    .dashboard-container {
+        display: grid;
+        grid-template-columns: var(--sidebar-width) 1fr var(--sidebar-width);
+        padding-left: 0;
+    }
+
+    .left-sidebar {
+        position: static;
+        height: calc(100vh - var(--navbar-height));
+    }
+    
+    .right-sidebar {
+        display: flex;
+        position: static;
+    }
+
+    .lessons-grid, .achievements-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Large Desktops */
+@media (min-width: 1440px) {
+    :root {
+        --sidebar-width: 280px;
+    }
+
+    .welcome-section {
+        margin: 2rem;
+        padding: 2.5rem 3rem;
+    }
+
+    .content-section {
+        margin: 0 2rem 2rem;
+    }
+
+    .lessons-grid, .achievements-grid, .progress-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .analytics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Mobile devices - All mobile styles */
+@media (max-width: 768px) {
+    /* Fix main content layout */
+    .main-content {
+        width: 100% !important;
+        margin-left: 0 !important;
+        height: calc(100vh - var(--navbar-height) - 60px) !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    /* Fix chat page */
+    #chatContent {
+        overflow: hidden !important;
+        height: 100% !important;
+    }
+    
+    /* Fix other tabs */
+    #lessonsContent,
+    #progressContent, 
+    #vocabularyContent,
+    #achievementsContent {
+        overflow-y: auto !important;
+        height: 100% !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    /* Mobile bottom nav */
+    .mobile-bottom-nav {
+        display: flex !important;
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 999 !important;
+        height: 60px !important;
+    }
+    
+    /* Prevent input zoom on iOS */
+    input, select, textarea {
+        font-size: 16px !important;
+    }
+
+        /* Fix chat input container - CRITICAL FOR MOBILE INPUT ISSUE */
+    .chat-input-container {
+        background: rgba(17, 24, 39, 0.95) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        padding: 16px !important;
+        position: sticky !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 1000 !important;
+    }
+    
+    .chat-input {
+        display: flex !important;
+        gap: 12px !important;
+        align-items: center !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 25px !important;
+        padding: 8px 16px !important;
+    }
+    
+    /* Fix input field */
+    #messageInput {
+        background: transparent !important;
+        border: none !important;
+        color: white !important;
+        font-size: 16px !important;
+        padding: 12px !important;
+        width: 100% !important;
+        outline: none !important;
+    }
+    
+    #messageInput:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
+    }
+    
+    /* Fix send button */
+    .send-btn {
+        background: var(--primary) !important;
+        border: none !important;
+        border-radius: 50% !important;
+        width: 48px !important;
+        height: 48px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: white !important;
+        font-size: 18px !important;
+        cursor: pointer !important;
+        flex-shrink: 0 !important;
+    }
+    
+    /* Fix suggestions */
+    .chat-suggestions {
+        display: flex !important;
+        gap: 8px !important;
+        margin-bottom: 12px !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding-bottom: 8px !important;
+    }
+    
+    .suggestion-chip {
+        background: rgba(99, 102, 241, 0.2) !important;
+        border: 1px solid rgba(99, 102, 241, 0.3) !important;
+        color: var(--primary) !important;
+        padding: 8px 16px !important;
+        border-radius: 20px !important;
+        font-size: 14px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        cursor: pointer !important;
+        touch-action: manipulation !important;
+    }
+    
+    .suggestion-chip:active {
+        background: rgba(99, 102, 241, 0.4) !important;
+        transform: scale(0.95) !important;
+    }
+    
+    /* Maximized chat for mobile */
+    .chat-maximized-container {
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        max-width: none;
+    }
+
+    .chat-maximized-header {
+        padding: 1rem;
+    }
+
+    .chat-maximized-title h2 {
+        font-size: 1.25rem;
+    }
+
+    .chat-maximized-messages {
+        padding: 1rem;
+    }
+
+    .chat-maximized-input-container {
+        padding: 1rem;
+        position: relative !important;
+        z-index: 2600 !important;
+    }
+
+    .chat-maximized-suggestions {
+        gap: 0.5rem;
+    }
+    
+    /* FIX FOR MAXIMIZED INPUT */
+    #maximizedMessageInput {
+        font-size: 16px !important;
+        padding: 0.75rem !important;
+        background: transparent !important;
+        border: none !important;
+        color: white !important;
+        width: 100% !important;
+        pointer-events: auto !important;
+        touch-action: manipulation !important;
+    }
+    
+    .maximized-send-btn {
+        width: 45px !important;
+        height: 45px !important;
+        pointer-events: auto !important;
+        touch-action: manipulation !important;
+    }
+}
+
+/* Small Mobile Devices */
+@media (max-width: 480px) {
+    :root {
+        --sidebar-width: 100%;
+        --navbar-height: 60px;
+    }
+    
+    .nav-container {
+        padding: 0 0.75rem;
+    }
+    
+    .brand-text {
+        display: none;
+    }
+    
+    .nav-center {
+        display: none;
+    }
+    
+    .user-name {
+        display: none;
+    }
+    
+    .logout-btn span {
+        display: none;
+    }
+    
+    .logout-btn {
+        padding: 0.5rem;
+        width: 40px;
+        height: 40px;
+        justify-content: center;
+    }
+    
+    .user-avatar {
+        width: 2rem;
+        height: 2rem;
+    }
+    
+    .dashboard-container {
+        flex-direction: column;
+        height: 100vh !important;
+        overflow: hidden !important;
+    }
+    
+    .left-sidebar {
+        display: none;
+    }
+    
+    .mobile-bottom-nav {
+        display: flex;
+        height: var(--mobile-nav-height);
+        padding: 0.5rem;
+    }
+    
+    .mobile-nav-item {
+        padding: 0.75rem 0.5rem;
+        border-radius: 8px;
+    }
+    
+    .main-content {
+        height: calc(100vh - var(--navbar-height) - var(--mobile-nav-height));
+        margin-bottom: var(--mobile-nav-height);
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .welcome-section {
+        margin: 0.75rem;
+        padding: 1rem;
+    }
+    
+    .welcome-title {
+        font-size: 1.25rem;
+    }
+    
+    .welcome-subtitle {
+        font-size: 0.85rem;
+    }
+    
+    .content-section {
+        margin: 0 0.75rem 0.75rem;
+    }
+    
+    .chat-container {
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .chat-header {
+        padding: 0.50rem;
+    }
+    
+    .chat-info h3 {
+        font-size: 0.9rem;
+    }
+    
+    .chat-info p {
+        font-size: 0.75rem;
+    }
+    
+    .chat-messages {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 16px !important;
+    }
+    
+    .message-bubble {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.85rem;
+    }
+    
+    .chat-input-container {
+        padding: 0.75rem;
+        position: sticky !important;
+        bottom: 0 !important;
+        background: rgba(17, 24, 39, 0.98) !important;
+        border-top: 2px solid rgba(255, 255, 255, 0.1) !important;
+        z-index: 1000 !important;
+    }
+    
+    .chat-suggestions {
+        gap: 0.4rem;
+        margin-bottom: 0.6rem;
+    }
+    
+    .suggestion-chip {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.75rem;
+    }
+    
+    .chat-input {
+        padding: 0.4rem 0.6rem;
+    }
+    
+    #messageInput {
+        font-size: 16px !important;
+        padding: 0.4rem;
+    }
+    
+    .send-btn {
+        width: 32px;
+        height: 32px;
+        padding: 0.5rem;
+    }
+    
+    .section-header {
+        padding: 0.75rem 0;
+    }
+    
+    .section-header h2 {
+        font-size: 1.25rem;
+    }
+    
+    .lessons-grid,
+    .progress-grid,
+    .achievements-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .vocab-stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+    }
+    
+    .fab {
+        width: 48px;
+        height: 48px;
+        font-size: 1.25rem;
+    }
+    
+    .donation-container,
+    .profile-container {
+        width: 95%;
+        margin: 1rem;
+        max-height: calc(100vh - 2rem);
+    }
+    
+    .donation-content,
+    .profile-content {
+        padding: 1.25rem;
+    }
+    
+    .amount-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+    
+    .payment-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .profile-actions {
+        flex-direction: column;
+    }
+    
+    .qr-section {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .support-options {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .notification-panel {
+        width: 100%;
+        right: -100%;
+    }
+    
+    .toast {
+        right: 1rem;
+        left: 1rem;
+        min-width: auto;
+        bottom: calc(var(--mobile-nav-height) + 1rem);
+    }
+    
+    .welcome-modal {
+        padding: 2rem 1.5rem;
+        margin: 1rem;
+    }
+    
+    .welcome-modal h2 {
+        font-size: 1.25rem;
+    }
+    
+    .start-btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Maximized chat fixes */
+    .chat-maximized-header {
+        padding: 0.75rem;
+    }
+
+    .chat-maximized-title h2 {
+        font-size: 1.1rem;
+    }
+
+    .chat-maximize-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+
+    #maximizedMessageInput {
+        font-size: 16px !important;
+        padding: 0.5rem;
+    }
+
+    .maximized-send-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .chat-maximized-input-container {
+        padding: 1rem;
+    }
+    
+    .chat-maximized-suggestions-container {
+        gap: 0.5rem;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .maximized-fab-container {
+        align-self: flex-end;
+    }
+    
+    .maximized-fab {
+        width: 42px;
+        height: 42px;
+        font-size: 1.1rem;
+    }
+}
+
+/* Medium Mobile Devices */
+@media (min-width: 481px) and (max-width: 768px) {
+    .nav-center {
+        display: none;
+    }
+    
+    .dashboard-container {
+        flex-direction: column;
+    }
+    
+    .left-sidebar {
+        position: fixed;
+        top: var(--navbar-height);
+        left: -100%;
+        width: 280px;
+        height: calc(100vh - var(--navbar-height));
+        z-index: 997;
+        transition: left 0.3s ease;
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .left-sidebar.active {
+        left: 0;
+    }
+    
+    .main-content {
+        width: 100%;
+        margin-left: 0;
+        height: calc(100vh - var(--navbar-height) - var(--mobile-nav-height));
+        margin-bottom: var(--mobile-nav-height);
+    }
+    
+    .mobile-bottom-nav {
+        display: flex;
+        height: var(--mobile-nav-height);
+    }
+    
+    .welcome-section {
+        margin: 1rem;
+        padding: 1rem 1.25rem;
+    }
+    
+    .content-section {
+        margin: 0 1rem 1rem;
+    }
+    
+    .lessons-grid,
+    .achievements-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .progress-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+        .vocab-stats {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .donation-container,
+    .profile-container {
+        width: 90%;
+        max-width: 450px;
+    }
+    
+    .amount-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .qr-section {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+    }
+    
+    .toast {
+        bottom: calc(var(--mobile-nav-height) + 1rem);
+    }
+}
+
+/* Tablets */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .nav-center .language-selector {
+        padding: 0.4rem 0.8rem;
+    }
+    
+    .left-sidebar {
+        width: 250px;
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .dashboard-container {
+        padding-left: 250px;
+    }
+    
+    .welcome-section {
+        margin: 1.25rem;
+        padding: 1.5rem 2rem;
+    }
+    
+    .content-section {
+        margin: 0 1.25rem 1.25rem;
+    }
+    
+    .lessons-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .progress-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .achievements-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .donation-container,
+    .profile-container {
+        max-width: 500px;
+    }
+    
+    .qr-section {
+        flex-direction: row;
+    }
+}
+
+/* Hide right sidebar on tablet/mobile */
+@media (max-width: 1024px) {
+    .right-sidebar {
+        display: none;
+    }
+}
+
+/* Mobile device optimizations */
+.mobile-device * {
+    will-change: auto !important;
+    transform: none !important;
+}
+
+.mobile-device .navbar,
+.mobile-device .left-sidebar,
+.mobile-device .donation-container,
+.mobile-device .profile-container {
+    backdrop-filter: none !important;
+    background: rgba(17, 24, 39, 0.95) !important;
+}
+
+/* Ultra mobile fixes */
+@media (max-width: 480px) {
+    .welcome-section {
+        margin: 0.5rem !important;
+        padding: 0.75rem !important;
+    }
+    
+    .welcome-title {
+        font-size: 1rem !important;
+    }
+    
+    .content-section {
+        margin: 0 0.5rem 0.5rem !important;
+    }
+}
+
+/* Emergency mobile fixes */
+@media (max-width: 480px) {
+    * {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    body, html {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+    }
+    
+    .dashboard-container {
+        display: block !important;
+        width: 100% !important;
+    }
+    
+    .main-content {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+}
+
+/* Landscape orientation fixes */
+@media (max-height: 500px) and (orientation: landscape) {
+    .navbar {
+        height: 50px;
+    }
+    
+    .mobile-bottom-nav {
+        height: 50px;
+    }
+    
+    .chat-messages {
+        padding: 0.5rem;
+    }
+}
+
+/* High DPI screens */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .message-avatar img {
+        image-rendering: crisp-edges;
+    }
+}
+
+/* CRITICAL MOBILE INPUT FIXES */
+@media (max-width: 768px) {
+    /* Ensure maximized inputs are always accessible */
+    .chat-maximized-overlay.active .chat-maximized-input,
+    .chat-maximized-overlay.active #maximizedMessageInput,
+    .chat-maximized-overlay.active .maximized-send-btn,
+    .chat-maximized-overlay.active .maximized-fab,
+    .chat-maximized-overlay.active .suggestion-chip {
+        pointer-events: auto !important;
+        touch-action: manipulation !important;
+        opacity: 1 !important;
+    }
+
+    .chat-maximized-overlay.active #maximizedMessageInput {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        color: white !important;
+    }
+
+    .chat-maximized-overlay.active #maximizedMessageInput:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
+    }
+}
+
+/* Power save mode for low battery */
+.power-save-mode * {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+}
+
+.power-save-mode .voice-waves,
+.power-save-mode .loading-spinner,
+.power-save-mode .welcome-animation {
+    display: none !important;
+}
+
+/* Ultra-low memory mode */
+@media (max-device-memory: 1GB) {
+    .navbar,
+    .left-sidebar,
+    .right-sidebar,
+    .modal-overlay {
+        backdrop-filter: none !important;
+        background: rgba(17, 24, 39, 0.98) !important;
+    }
+    
+    .chat-messages {
+        contain: layout style paint !important;
+    }
+}
+
+/* Network quality optimizations */
+@media (prefers-reduced-data: reduce) {
+    .hero-visual,
+    .profile-avatar img,
+    .message-avatar img {
+        display: none !important;
+    }
+}

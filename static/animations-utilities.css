@@ -1,0 +1,192 @@
+/* ================================
+   LUCY AI - ANIMATIONS & UTILITIES
+   Keyframes, transitions, helper classes
+   ================================ */
+
+/* Keyframe Animations */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(236, 72, 153, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
+}
+
+@keyframes messageSlide {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes wave {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(2); }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateX(-50%) translateY(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes welcomePulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.5);
+        opacity: 1;
+    }
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+@keyframes fadeInMaximize {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInMaximize {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes typingDot {
+    0%, 60%, 100% {
+        transform: scale(1);
+        opacity: 0.4;
+    }
+    30% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+@keyframes slideUpToast {
+    from {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Voice waves animation */
+.voice-waves {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.wave {
+    width: 4px;
+    height: 20px;
+    background: white;
+    border-radius: 2px;
+    animation: wave 1.5s ease-in-out infinite;
+}
+
+.wave:nth-child(1) { animation-delay: 0s; }
+.wave:nth-child(2) { animation-delay: 0.2s; }
+.wave:nth-child(3) { animation-delay: 0.4s; }
+
+.maximized-voice-indicator .wave {
+    width: 4px;
+    height: 20px;
+    background: white;
+    border-radius: 2px;
+    animation: wave 1.5s ease-in-out infinite;
+}
+
+.maximized-voice-indicator .wave:nth-child(1) { animation-delay: 0s; }
+.maximized-voice-indicator .wave:nth-child(2) { animation-delay: 0.2s; }
+.maximized-voice-indicator .wave:nth-child(3) { animation-delay: 0.4s; }
+
+/* Additional mobile-specific animations */
+.toast.show {
+    display: flex !important;
+    animation: slideUpToast 0.3s ease !important;
+}
+
+.toast-close {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: none !important;
+    color: white !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    font-size: 16px !important;
+}
+
+/* Chat action button states */
+.chat-action-btn.maximized {
+    background: rgba(99, 102, 241, 0.2);
+    color: var(--primary);
+}
+
+/* Accessibility & Preference Queries */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+@media print {
+    .navbar, .left-sidebar, .right-sidebar, .mobile-bottom-nav, .modal-overlay {
+        display: none !important;
+    }
+    body {
+        background: white;
+        color: black;
+        overflow: visible;
+        height: auto;
+    }
+    .main-content, .chat-container, .chat-messages {
+        height: auto;
+        overflow: visible;
+    }
+    .chat-input-container {
+        display: none;
+    }
+}
+
